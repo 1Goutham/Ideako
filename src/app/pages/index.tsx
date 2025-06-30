@@ -51,7 +51,7 @@ export default function Page() {
 
   return (
     <div
-      className="min-h-screen w-full md:bg-contain bg-center bg-no-repeat text-black font-montserrat tracking-wider"
+      className="min-h-screen w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider"
       style={{ backgroundImage: 'url(/bg-image.png)' }}
     >
       <Head>
@@ -71,24 +71,24 @@ export default function Page() {
         </a>
       </header>
 
-      <div className="md:pt-10 md:pl-10">
-        <h1 className="text-4xl md:text-5xl font-light">
+      <div className="pt-5 pl-5 md:pt-10 md:pl-10">
+        <h1 className="text-2xl md:text-5xl font-light">
           Meet <span className="text-black font-semibold">Ideko!</span>
         </h1>
-        <p className="text-xl md:text-3xl mt-3">Your intelligent AI creative partner</p>
+        <p className="text-base md:text-3xl md:mt-3">Your intelligent AI creative partner</p>
       </div>
 
-      <main className="flex flex-col md:flex-row justify-between px-6 md:px-24 py-5">
+      <main className="flex flex-col md:flex-row  md:justify-between px-6 md:px-24 py-5">
         <div className="max-w-xl text-center md:text-left">
-          <div className="md:mt-20">
-            <h3 className="text-4xl font-medium">What’s on Your Mind?</h3>
+          <div className="mt-5 md:mt-20">
+            <h3 className="text-base md:text-4xl font-medium">What’s on Your Mind?</h3>
 
-            <div className="flex gap-6 text-[#696969] text-sm font-medium mt-3 mb-3">
+            <div className="flex gap-6 justify-center md:justify-start text-[#696969] text-xs md:text-sm font-medium mt-3 mb-3 ">
               {contentTypes.map((type) => (
                 <span
                   key={type}
                   onClick={() => setActiveType(type)}
-                  className={`cursor-pointer ${
+                  className={`cursor-pointer text-center ${
                     activeType === type ? 'text-black font-semibold' : ''
                   }`}
                 >
@@ -102,27 +102,39 @@ export default function Page() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter Your Input"
-              className="w-full p-2 rounded-md bg-[#D9D9D9] mb-4 md:w-96 outline-none"
+              className="w-full p-1 md:p-2 rounded-md bg-[#D9D9D9] mb-4 md:w-96 outline-none"
             />
 
             <button
               onClick={handleGenerate}
-              className="bg-black text-white px-6 py-3 rounded-md text-xs font-medium flex items-center gap-2"
+              className="bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-md text-xs md:text-sm font-medium flex items-center gap-2"
               disabled={loading}
             >
               <Image src="/generate.png" alt="AI Bot" width={15} height={15} />
               {loading ? 'Generating...' : 'Generate Magic'}
-            </button>
+            </button> 
           </div>
         </div>
 
         <div className="mt-10 md:mt-0 flex items-center justify-center">
-          {loading ? (
-            <Image src="/bot-loading.gif" alt="Bot Loading" width={505} height={505} />
-          ) : (
-            <Image src="/bot.png" alt="AI Bot" width={505} height={505} />
-          )}
-        </div>
+  {loading ? (
+    <Image
+      src="/bot-loading.gif"
+      alt="Bot Loading"
+      width={305}
+      height={305}
+      className="w-72 md:w-[505px] h-auto"
+    />
+  ) : (
+    <Image
+      src="/bot.png"
+      alt="AI Bot"
+      width={305}
+      height={305}
+      className="w-72 md:w-[505px] h-auto"
+    />
+  )}
+</div>
       </main>
     </div>
   );

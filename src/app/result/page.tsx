@@ -26,7 +26,7 @@ export default function ResultPage() {
 
   return (
     <div
-      className="min-h-screen w-full md:bg-contain bg-center bg-no-repeat text-black font-montserrat tracking-wider"
+      className="min-h-screen w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider"
       style={{ backgroundImage: 'url(/bg-image.png)' }}
     >
       <Head>
@@ -52,7 +52,7 @@ export default function ResultPage() {
           alt="Bot"
           width={250}
           height={250}
-          className="mt-5 md:mt-20"
+          className="mt-20"
         />
 
         <div

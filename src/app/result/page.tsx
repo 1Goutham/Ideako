@@ -34,10 +34,12 @@ export default function ResultPage() {
       </Head>
 
       <header className="flex justify-between items-center p-6 bg-white/30 backdrop-blur-3xl">
+        <Link href="/">
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Ideko Logo" width={30} height={30} />
+          <Image src="/logo.png" alt="Ideko Logo" width={30} height={30}/>
           <span className="font-semibold text-lg">Ideko</span>
         </div>
+        </Link>
         <a
           href="https://www.linkedin.com/in/goutham-g-98a0ba253/"
           className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Head from 'next/head';
 import './../../app/globals.css';
+import Link from 'next/link';
 
 const contentTypes = ['Caption', 'Video Idea', 'Hashtags'] as const;
 type ContentType = (typeof contentTypes)[number];
@@ -14,6 +15,7 @@ export default function Page() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  
 
   const handleGenerate = async () => {
     if (!input.trim()) return;
@@ -59,10 +61,12 @@ export default function Page() {
       </Head>
 
       <header className="flex justify-between items-center p-6 bg-white/30 backdrop-blur-3xl">
+      <Link href="/">
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Ideko Logo" width={30} height={30} />
+          <Image src="/logo.png" alt="Ideko Logo" width={30} height={30}/>
           <span className="font-semibold text-lg">Ideko</span>
         </div>
+        </Link>
         <a
           href="https://www.linkedin.com/in/goutham-g-98a0ba253/"
           className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90"
@@ -118,12 +122,11 @@ export default function Page() {
 
         <div className="mt-10 md:mt-0 flex items-center justify-center">
   {loading ? (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src="/bot-loading.gif"
       alt="Bot Loading"
-      width={305}
-      height={305}
-      className="w-72 md:w-[505px] h-auto"
+      className="w-[305px] md:w-[505px] h-auto"
     />
   ) : (
     <Image

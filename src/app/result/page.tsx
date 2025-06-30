@@ -26,7 +26,7 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider" style={{ backgroundImage: 'url(/Altered-bg.png)' }}>
+    <div className="min-h-screen w-full overflow-y-auto bg-center bg-no-repeat text-black font-montserrat tracking-wider" style={{ backgroundImage: 'url(/Altered-bg.png)' }}>
       <Head>
         <title>Ideako - AI Creative Partner</title>
       </Head>

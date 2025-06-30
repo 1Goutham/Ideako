@@ -53,12 +53,12 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider" style={{ backgroundImage: 'url(/Altered-bg.png)' }}>
+    <div className="min-h-screen max-h-screen overflow-y-auto scroll-smooth w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider" style={{ backgroundImage: 'url(/Altered-bg.png)' }}>
       <Head>
         <title>Ideako - AI Creative Partner</title>
       </Head>
 
-      <header className="flex justify-between items-center p-6 bg-white/30 backdrop-blur-3xl">
+      <header className="sticky top-0 z-10 flex justify-between items-center p-6 bg-white/30 backdrop-blur-3xl">
         <Link href="/">
           <div className="flex items-center gap-2">
             <Image src="/logo.png" alt="Ideko Logo" width={30} height={30} />
@@ -111,7 +111,6 @@ export default function Page() {
 
         <div className="mt-10 md:mt-0 flex items-center justify-center">
           {loading ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src="/bot-loading.gif" alt="Bot Loading" className="w-[305px] md:w-[505px] h-auto" />
           ) : (
             <Image src="/bot.png" alt="AI Bot" width={305} height={305} className="w-72 md:w-[505px] h-auto" />

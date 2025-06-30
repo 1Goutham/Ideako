@@ -39,7 +39,6 @@ export default function Page() {
       });
 
       const data = await res.json();
-
       const generated = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
       if (!generated) throw new Error('Empty response');
@@ -50,8 +49,6 @@ export default function Page() {
       console.error('Error generating:', err);
       localStorage.setItem('ideako_result', 'No output found. Please try again.');
       router.push('/result');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -103,7 +100,7 @@ export default function Page() {
 
             <button
               onClick={handleGenerate}
-              className="bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-md text-xs md:text-sm font-medium flex items-center gap-2"
+              className="bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-md text-xs md:text-sm font-medium flex items-center gap-2 cursor-pointer"
               disabled={loading}
             >
               <Image src="/generate.png" alt="AI Bot" width={15} height={15} />

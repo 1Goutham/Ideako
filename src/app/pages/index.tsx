@@ -52,7 +52,7 @@ export default function Page() {
   return (
     <div
       className="min-h-screen w-full bg-center bg-no-repeat text-black font-montserrat tracking-wider"
-      style={{ backgroundImage: 'url(/bg-image.png)' }}
+      style={{ backgroundImage: 'url(/Altered-bg.png)' }}
     >
       <Head>
         <title>Ideako - AI Creative Partner</title>

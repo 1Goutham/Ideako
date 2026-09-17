@@ -1,5 +1,5 @@
 import type { VoiceAnalysisRequest, VoiceAnalysisResult } from "@/lib/ai/contracts";
-import { callGeminiJson } from "@/lib/ai/gemini";
+import { completeJson } from "@/lib/ai/engine";
 import { SYSTEM, voiceAnalysisPrompt } from "@/lib/ai/prompts";
 import { isObj, parseContext, parseReferences, str, strArr, withAiRoute } from "@/lib/ai/route";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return { context, references };
     },
     (data) =>
-      callGeminiJson<VoiceAnalysisResult>(
+      completeJson<VoiceAnalysisResult>(
         { system: SYSTEM, prompt: voiceAnalysisPrompt(data), temperature: 0.4, maxOutputTokens: 512 },
         (v) => {
           if (!isObj(v)) return null;

@@ -1,6 +1,6 @@
 import { REFINE_ACTIONS } from "@/lib/constants";
 import type { RefineRequest, RefineResult } from "@/lib/ai/contracts";
-import { callGeminiJson } from "@/lib/ai/gemini";
+import { completeJson } from "@/lib/ai/engine";
 import { refinePrompt, SYSTEM } from "@/lib/ai/prompts";
 import { isObj, parseContext, parsePlatform, str, withAiRoute } from "@/lib/ai/route";
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       };
     },
     (data) =>
-      callGeminiJson<RefineResult>(
+      completeJson<RefineResult>(
         { system: SYSTEM, prompt: refinePrompt(data), temperature: 0.75, maxOutputTokens: 2048 },
         (v) => {
           if (!isObj(v)) return null;

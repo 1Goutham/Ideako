@@ -1,5 +1,5 @@
 import type { InsightRequest, InsightResult } from "@/lib/ai/contracts";
-import { callGeminiJson } from "@/lib/ai/gemini";
+import { completeJson } from "@/lib/ai/engine";
 import { insightPrompt, SYSTEM } from "@/lib/ai/prompts";
 import { isObj, parseContext, parsePlatform, str, withAiRoute } from "@/lib/ai/route";
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return { context, post, platform: parsePlatform(body.platform) };
     },
     (data) =>
-      callGeminiJson<InsightResult>(
+      completeJson<InsightResult>(
         { system: SYSTEM, prompt: insightPrompt(data), temperature: 0.3, maxOutputTokens: 512 },
         (v) => {
           if (!isObj(v)) return null;
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
           if (!tone || !suggestion) return null;
           return { hookStrength: hook, readability, tone, suggestion };
         },
+        "analyse",
       ),
   );
 }

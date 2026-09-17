@@ -11,6 +11,17 @@ export const APP_NAME = "Ideako";
 export const APP_TAGLINE = "Your AI creative partner";
 export const CONTACT_URL = "https://www.linkedin.com/in/goutham-g-98a0ba253/";
 
+/** Who makes Ideako. Details mirror the portfolio at 1goutham.space. */
+export const AUTHOR = {
+  name: "Goutham G",
+  handle: "1Goutham",
+  site: "https://1goutham.space",
+  linkedin: CONTACT_URL,
+  github: "https://github.com/1Goutham",
+  instagram: "https://www.instagram.com/tanger.ineee/",
+  email: "gouthamgopinath.tsi@gmail.com",
+} as const;
+
 export const PLATFORMS: Record<
   Platform,
   { label: string; available: boolean; maxChars: number; foldChars: number }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AUTHOR } from "@/lib/constants";
 import { useWorkspace } from "@/lib/store";
 import { cx, initials } from "@/lib/utils";
 import { Logo } from "@/components/ui";
@@ -82,8 +83,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {ready && profile?.onboardingCompletedAt ? children : <ShellSkeleton />}
       </main>
 
-      <footer className="mx-auto flex max-w-[1280px] items-center justify-between border-t border-line px-6 py-6 text-[12px] text-ink-3 md:px-10">
-        <p>© {new Date().getFullYear()} Ideako</p>
+      <footer className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 border-t border-line px-6 py-6 text-[12px] text-ink-3 md:px-10">
+        <p>
+          © {new Date().getFullYear()} Ideako · A product of{" "}
+          <a href={AUTHOR.site} target="_blank" rel="noreferrer" className="link-underline text-ink">
+            {AUTHOR.handle} ↗
+          </a>
+        </p>
         <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="link-underline hover:text-ink">
           Back to top ↑
         </button>

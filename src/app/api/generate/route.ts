@@ -1,6 +1,6 @@
 import { CONTENT_TYPES, LENGTHS, TONES } from "@/lib/constants";
 import type { GenerateRequest, GenerateResult } from "@/lib/ai/contracts";
-import { callGeminiJson } from "@/lib/ai/gemini";
+import { completeJson } from "@/lib/ai/engine";
 import { generatePrompt, SYSTEM } from "@/lib/ai/prompts";
 import { isObj, parseContext, parsePlatform, parseReferences, str, strArr, withAiRoute } from "@/lib/ai/route";
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       };
     },
     (data) =>
-      callGeminiJson<GenerateResult>(
+      completeJson<GenerateResult>(
         { system: SYSTEM, prompt: generatePrompt(data), temperature: 0.85, maxOutputTokens: 2048 },
         (v) => {
           if (!isObj(v)) return null;

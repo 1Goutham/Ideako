@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CONTACT_URL, CREATING_FOR, INDUSTRIES, PLATFORMS } from "@/lib/constants";
+import { AUTHOR, CREATING_FOR, INDUSTRIES, PLATFORMS } from "@/lib/constants";
 import { useWorkspace, useWorkspaceActions } from "@/lib/store";
 import type { CreatingFor, Platform } from "@/lib/types";
 import { Button, Chip, ChipGroup, Field, Input, TextAction } from "@/components/ui";
+import { EnginePanel } from "./EnginePanel";
 import { PageHeader } from "./PageHeader";
 
 export function SettingsView() {
@@ -130,7 +131,7 @@ export function SettingsView() {
           </Button>
         </div>
 
-        <Section index="04" title="Your data" hint="Ideako keeps your workspace in this browser. Only the text you generate with goes to Gemini, through Ideako's server.">
+        <Section index="04" title="Your data" hint="Ideako keeps your workspace in this browser. Only the text you generate with goes to the AI engine, through Ideako's server.">
           <ul className="border-t border-line">
             <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
               <div>
@@ -158,13 +159,34 @@ export function SettingsView() {
           </ul>
         </Section>
 
-        <Section index="05" title="About">
+        <Section index="05" title="AI engine" hint="Which model writes with you. Free tiers, with automatic fallback when one is rate-limited.">
+          <EnginePanel />
+        </Section>
+
+        <Section index="06" title="About">
           <p className="max-w-lg text-[15px] leading-relaxed text-ink-2">
-            Ideako is an AI creative partner that learns how you communicate. Questions or ideas?{" "}
-            <a href={CONTACT_URL} target="_blank" rel="noreferrer" className="link-underline text-ink">
-              Get in touch ↗
+            Ideako is an AI creative partner that learns how you communicate. A product of{" "}
+            <a href={AUTHOR.site} target="_blank" rel="noreferrer" className="link-underline text-ink">
+              {AUTHOR.handle} ↗
             </a>
+            , designed and built by {AUTHOR.name}.
           </p>
+          <ul className="mt-6 border-t border-line">
+            {[
+              { label: "Portfolio", href: AUTHOR.site, value: "1goutham.space" },
+              { label: "LinkedIn", href: AUTHOR.linkedin, value: "goutham-g" },
+              { label: "GitHub", href: AUTHOR.github, value: AUTHOR.handle },
+              { label: "Instagram", href: AUTHOR.instagram, value: "@tanger.ineee" },
+              { label: "Email", href: `mailto:${AUTHOR.email}`, value: AUTHOR.email },
+            ].map((l) => (
+              <li key={l.label} className="flex items-center justify-between gap-4 border-b border-line py-3 text-[14px]">
+                <span className="label">{l.label}</span>
+                <a href={l.href} target={l.href.startsWith("mailto:") ? undefined : "_blank"} rel="noreferrer" className="link-underline text-ink">
+                  {l.value} ↗
+                </a>
+              </li>
+            ))}
+          </ul>
         </Section>
       </div>
     </div>

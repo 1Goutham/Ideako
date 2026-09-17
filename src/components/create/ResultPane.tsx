@@ -66,7 +66,9 @@ export function ResultError({ error, onRetry }: { error: AiError; onRetry: () =>
       <p className="label">Output</p>
       <p className="display mt-4 text-[32px] text-ink">{notConfigured ? "Ideako isn't connected yet." : "That didn't go through."}</p>
       <p className="mt-4 max-w-md text-[14px] leading-relaxed text-ink-3">{error.message}</p>
-      {notConfigured && <pre className="mono mt-4 w-fit border border-line px-3 py-2 text-[12px] text-ink-2">GEMINI_API_KEY=your-key</pre>}
+      {notConfigured && (
+        <pre className="mono mt-4 w-fit border border-line px-3 py-2 text-[12px] leading-relaxed text-ink-2">{"GEMINI_API_KEY=…   # free at aistudio.google.com\nGROQ_API_KEY=…     # free at console.groq.com"}</pre>
+      )}
       <p className="mono mt-4 text-[11px] text-ink-4">Nothing you wrote was lost.</p>
       {error.retryable && (
         <Button size="sm" className="mt-6" onClick={onRetry}>

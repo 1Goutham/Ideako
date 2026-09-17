@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CONTACT_URL } from "@/lib/constants";
+import { AUTHOR } from "@/lib/constants";
 import { useWorkspace } from "@/lib/store";
 import { cx } from "@/lib/utils";
 import { BracketLink, IconArrowUpRight, LinkButton, Logo, PlusMinus } from "@/components/ui";
@@ -143,10 +143,18 @@ export function Landing() {
         </section>
       </main>
 
-      <footer className="mx-auto flex max-w-[1280px] flex-col gap-3 border-t border-line px-6 py-6 text-[12px] text-ink-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
-        <p>© {new Date().getFullYear()} Ideako. Designed &amp; built by Goutham.</p>
-        <div className="flex items-center gap-6">
-          <a href={CONTACT_URL} target="_blank" rel="noreferrer" className="link-underline hover:text-ink">Contact ↗</a>
+      <footer className="mx-auto flex max-w-[1280px] flex-col gap-4 border-t border-line px-6 py-6 text-[12px] text-ink-3 md:flex-row md:items-center md:justify-between md:px-10">
+        <p>
+          © {new Date().getFullYear()} Ideako. A product of{" "}
+          <a href={AUTHOR.site} target="_blank" rel="noreferrer" className="link-underline text-ink">
+            {AUTHOR.handle} ↗
+          </a>
+        </p>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <a href={AUTHOR.linkedin} target="_blank" rel="noreferrer" className="link-underline hover:text-ink">LinkedIn</a>
+          <a href={AUTHOR.github} target="_blank" rel="noreferrer" className="link-underline hover:text-ink">GitHub</a>
+          <a href={AUTHOR.instagram} target="_blank" rel="noreferrer" className="link-underline hover:text-ink">Instagram</a>
+          <a href={`mailto:${AUTHOR.email}`} className="link-underline hover:text-ink">Email</a>
           <a href="#" className="link-underline hover:text-ink">Back to top ↑</a>
         </div>
       </footer>

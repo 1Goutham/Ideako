@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ideako
 
-## Getting Started
+**Your AI creative partner.** Ideako learns how you communicate and helps you create social media content in your own voice. LinkedIn first; other platforms can be added behind the same architecture.
 
-First, run the development server:
+## The workflow
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Landing → Sign up / sign in → Who are you creating for? → Teach Ideako your voice
+→ Create: describe an idea, pick a content type, tone and length, add references
+→ Generate → Edit and refine (rewrite, shorten, expand, improve the hook, …)
+→ Hashtag suggestions (recommended / broader / niche) → Save / copy → come back later
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Product surface
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Area | What it does |
+| --- | --- |
+| `/` | Landing page. |
+| `/onboarding` | Three-step setup: who you create for, about you, your voice (tone chips, previous posts, company material, notes). |
+| `/signin` | Local sign-in seam; real auth plugs in here. |
+| `/create` | The workspace. Composer on the left, editor with refine actions, *Ideako's take* and hashtags on the right. |
+| `/references` | Library of past posts Ideako studies for style (never copies). |
+| `/voice` | What Ideako has learned about your voice, plus brand description, audience, preferences, things to avoid, background documents. |
+| `/saved` | Saved posts and full history with open, edit, duplicate, delete, use as reference. |
+| `/settings` | Profile, platform, export / clear workspace. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting started
 
-## Learn More
+```bash
+npm install
+cp .env.example .env.local   # add your Gemini key
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Without `GEMINI_API_KEY` the app runs, but generation shows a clear "Ideako isn't connected yet" state instead of failing silently.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                      Next.js App Router
+    api/{generate,refine,hashtags,insights,voice}   Server-side Gemini routes
+    (workspace)/            Authenticated workspace pages, shared AppShell
+    onboarding/  signin/    Entry flows
+  components/
+    ui/                     Button, Chip, Field, Segmented, Disclosure, Icons, …
+    create/                 Composer, ReferenceBlock, PostEditor, PostPreview,
+                            HashtagPanel, InsightPanel, ResultPane, CreateWorkspace
+    app/                    AppShell, PageHeader, References/Voice/Saved/Settings views
+    onboarding/  landing/
+  lib/
+    types.ts                Domain model: User, Profile, Voice, Reference,
+                            GeneratedPost (+ versions, hashtags, insight)
+    constants.ts            Content types, tones, lengths, refine actions, platforms
+    ai/                     contracts (shared), gemini (server), prompts (server),
+                            route helpers + rate limit (server), client (browser)
+    storage/                IdeakoRepository interface + LocalRepository (localStorage)
+    store/                  WorkspaceProvider: hydrated state + typed actions
+```
 
-## Deploy on Vercel
+**Persistence.** Everything is written through `IdeakoRepository`. Today that is `LocalRepository` (browser storage). Implement the same interface on top of a database and swap it in `lib/storage/index.ts`; the UI does not change.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**AI.** The API key never reaches the browser. Each route validates its body, applies a per-IP rate limit, builds a prompt from the shared *voice brief* (profile + voice + references + knowledge), and returns a typed `{ ok, data | error }` envelope. Timeouts, 429s, safety blocks, empty and malformed responses all map to friendly, retryable errors, and a failed request never touches the user's draft.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run start    # serve the build
+npm run lint     # eslint
+```

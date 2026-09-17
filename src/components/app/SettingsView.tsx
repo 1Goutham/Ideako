@@ -7,6 +7,7 @@ import { AUTHOR, CREATING_FOR, INDUSTRIES, PLATFORMS } from "@/lib/constants";
 import { useWorkspace, useWorkspaceActions } from "@/lib/store";
 import type { CreatingFor, Platform } from "@/lib/types";
 import { Button, Chip, ChipGroup, Field, Input, TextAction } from "@/components/ui";
+import { EnginePanel } from "./EnginePanel";
 import { PageHeader } from "./PageHeader";
 
 export function SettingsView() {
@@ -158,7 +159,11 @@ export function SettingsView() {
           </ul>
         </Section>
 
-        <Section index="05" title="About">
+        <Section index="05" title="AI engine" hint="Which model writes with you. Free tiers, with automatic fallback when one is rate-limited.">
+          <EnginePanel />
+        </Section>
+
+        <Section index="06" title="About">
           <p className="max-w-lg text-[15px] leading-relaxed text-ink-2">
             Ideako is an AI creative partner that learns how you communicate. A product of{" "}
             <a href={AUTHOR.site} target="_blank" rel="noreferrer" className="link-underline text-ink">

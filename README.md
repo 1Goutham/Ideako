@@ -28,13 +28,30 @@ Landing → Sign up / sign in → Who are you creating for? → Teach Ideako you
 
 ```bash
 npm install
-cp .env.example .env.local   # add your Gemini key
+cp .env.example .env.local   # add at least one free AI key
 npm run dev
 ```
 
-Without `GEMINI_API_KEY` the app runs, but generation shows a clear "Ideako isn't connected yet" state instead of failing silently.
+## Choosing a free AI engine
 
-**Model selection.** Gemini model IDs are retired regularly (`gemini-2.0-flash` was shut down on 1 June 2026). Ideako therefore asks the API which models your key can use and picks the newest stable Flash model automatically, caching the answer for an hour and re-checking if a request ever 404s. Set `GEMINI_MODEL` only if you want to pin a specific ID.
+Ideako is not tied to one model vendor. It has an engine layer with pluggable providers and automatic fallback, because free tiers all share the same two problems: rate limits and retired model names.
+
+| Provider | Free tier | Why use it | Key |
+| --- | --- | --- | --- |
+| **Google Gemini** (default) | Yes, no card | Best writing quality for this workload; native JSON mode | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Groq** | Yes, no card | Very fast Llama models; ideal fallback when Gemini is rate-limited | [console.groq.com/keys](https://console.groq.com/keys) |
+| **OpenRouter** | Free models (`:free`) | Wide choice; quality and uptime vary by model | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| **Custom** | Depends | Any OpenAI-compatible endpoint: Cerebras, Mistral, Together, local Ollama | `AI_BASE_URL` + `AI_API_KEY` |
+
+Recommended setup: **Gemini + Groq**. Two keys, both free, and the product keeps working when either one throttles.
+
+How it behaves:
+
+- **Model resolution.** Each provider asks its API which models the key can use and picks the newest stable general-purpose one. `gemini-2.0-flash` was retired on 1 June 2026; nothing in Ideako needs editing when that happens again. Pin a model with `GEMINI_MODEL` / `GROQ_MODEL` if you want to.
+- **Fallback.** On a rate limit, timeout, outage, or empty/unreadable answer, the engine moves to the next configured provider. Hard failures (a blocked prompt, a rejected key) stop and report clearly.
+- **Visibility.** Settings → *AI engine* shows the chain, the resolved models, and a *Test connection* button. `GET /api/engine` returns the same without keys.
+
+Without any key the app runs, and generation shows a clear "not connected" state with the two free signup links.
 
 ## Architecture
 
@@ -54,8 +71,8 @@ src/
     types.ts                Domain model: User, Profile, Voice, Reference,
                             GeneratedPost (+ versions, hashtags, insight)
     constants.ts            Content types, tones, lengths, refine actions, platforms
-    ai/                     contracts (shared), gemini (server), prompts (server),
-                            route helpers + rate limit (server), client (browser)
+    ai/                     contracts (shared), engine + providers/ (server),
+                            prompts (server), route helpers + rate limit, client (browser)
     storage/                IdeakoRepository interface + LocalRepository (localStorage)
     store/                  WorkspaceProvider: hydrated state + typed actions
 ```

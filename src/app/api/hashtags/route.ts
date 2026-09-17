@@ -1,5 +1,5 @@
 import type { HashtagRequest, HashtagResult } from "@/lib/ai/contracts";
-import { callGeminiJson } from "@/lib/ai/gemini";
+import { completeJson } from "@/lib/ai/engine";
 import { hashtagPrompt, SYSTEM } from "@/lib/ai/prompts";
 import { isObj, parseContext, parsePlatform, str, withAiRoute } from "@/lib/ai/route";
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       return { context, post, platform: parsePlatform(body.platform) };
     },
     (data) =>
-      callGeminiJson<HashtagResult>(
+      completeJson<HashtagResult>(
         { system: SYSTEM, prompt: hashtagPrompt(data), temperature: 0.5, maxOutputTokens: 1024 },
         (v) => {
           if (!isObj(v)) return null;

@@ -1,5 +1,6 @@
 import "server-only";
 import type { AiError, AiResponse } from "./contracts";
+import { invalidateModelCache, resolveModel } from "./models";
 
 /**
  * Thin, defensive wrapper around the Gemini REST API.
@@ -10,9 +11,7 @@ import type { AiError, AiResponse } from "./contracts";
  *   without ever losing the user's work.
  */
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 const BASE = (process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com").replace(/\/$/, "");
-const ENDPOINT = `${BASE}/v1beta/models/${MODEL}:generateContent`;
 const TIMEOUT_MS = 45_000;
 
 interface CallOptions {
@@ -45,46 +44,35 @@ export async function callGemini(opts: CallOptions): Promise<AiResponse<string>>
     );
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  let model = await resolveModel(key);
+  let res = await request(key, model, opts);
 
-  let res: Response;
-  try {
-    res = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      signal: controller.signal,
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: opts.system }] },
-        contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
-        generationConfig: {
-          temperature: opts.temperature ?? 0.8,
-          maxOutputTokens: opts.maxOutputTokens ?? 2048,
-          ...(opts.json ? { responseMimeType: "application/json" } : {}),
-        },
-      }),
-    });
-  } catch (e) {
-    clearTimeout(timer);
-    if ((e as Error)?.name === "AbortError") {
-      return err("timeout", "Ideako took too long to respond. Please try again.", true);
+  // The model may have been retired since we last looked; re-resolve once.
+  if (res instanceof Response && res.status === 404) {
+    invalidateModelCache();
+    const next = await resolveModel(key);
+    if (next !== model) {
+      model = next;
+      res = await request(key, model, opts);
     }
-    return err("network", "Couldn't reach Gemini. Check the server's network connection.", true);
   }
-  clearTimeout(timer);
+
+  if (!(res instanceof Response)) return res;
 
   if (res.status === 429) {
     return err("rate_limited", "Ideako is a little busy right now. Give it a few seconds and try again.", true);
   }
-  if (res.status === 400 || res.status === 401 || res.status === 403) {
-    const detail = await safeText(res);
-    console.error("Gemini rejected the request:", res.status, detail);
-    return err("upstream", "Gemini rejected the request. Check the API key and model configuration.");
-  }
   if (!res.ok) {
     const detail = await safeText(res);
-    console.error("Gemini error:", res.status, detail);
-    return err("upstream", "Gemini had a problem processing this request. Please try again.", res.status >= 500);
+    console.error("Gemini error:", res.status, model, detail);
+    const reason = extractMessage(detail);
+    if (res.status === 404) {
+      return err("upstream", `Gemini can't find the model "${model}". Set GEMINI_MODEL to a current model name and redeploy.`);
+    }
+    if (res.status === 400 || res.status === 401 || res.status === 403) {
+      return err("upstream", `Gemini rejected the request (${res.status})${reason ? `: ${reason}` : ""}. Check the API key and its permissions.`);
+    }
+    return err("upstream", `Gemini had a problem (${res.status})${reason ? `: ${reason}` : ""}. Please try again.`, res.status >= 500);
   }
 
   let payload: GeminiPayload;
@@ -109,6 +97,45 @@ export async function callGemini(opts: CallOptions): Promise<AiResponse<string>>
   }
 
   return { ok: true, data: text };
+}
+
+async function request(key: string, model: string, opts: CallOptions): Promise<Response | AiResponse<never>> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    return await fetch(`${BASE}/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      signal: controller.signal,
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: opts.system }] },
+        contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+        generationConfig: {
+          temperature: opts.temperature ?? 0.8,
+          maxOutputTokens: opts.maxOutputTokens ?? 2048,
+          ...(opts.json ? { responseMimeType: "application/json" } : {}),
+        },
+      }),
+    });
+  } catch (e) {
+    if ((e as Error)?.name === "AbortError") {
+      return err("timeout", "Ideako took too long to respond. Please try again.", true);
+    }
+    return err("network", "Couldn't reach Gemini. Check the server's network connection.", true);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Pull the human-readable message out of a Gemini error body, if there is one. */
+function extractMessage(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string } };
+    const msg = parsed.error?.message?.trim();
+    return msg ? msg.slice(0, 160) : "";
+  } catch {
+    return "";
+  }
 }
 
 async function safeText(res: Response): Promise<string> {

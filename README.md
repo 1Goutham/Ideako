@@ -34,6 +34,8 @@ npm run dev
 
 Without `GEMINI_API_KEY` the app runs, but generation shows a clear "Ideako isn't connected yet" state instead of failing silently.
 
+**Model selection.** Gemini model IDs are retired regularly (`gemini-2.0-flash` was shut down on 1 June 2026). Ideako therefore asks the API which models your key can use and picks the newest stable Flash model automatically, caching the answer for an hour and re-checking if a request ever 404s. Set `GEMINI_MODEL` only if you want to pin a specific ID.
+
 ## Architecture
 
 ```

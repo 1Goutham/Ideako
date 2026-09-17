@@ -131,7 +131,7 @@ export function SettingsView() {
           </Button>
         </div>
 
-        <Section index="04" title="Your data" hint="Ideako keeps your workspace in this browser. Only the text you generate with goes to Gemini, through Ideako's server.">
+        <Section index="04" title="Your data" hint="Ideako keeps your workspace in this browser. Only the text you generate with goes to the AI engine, through Ideako's server.">
           <ul className="border-t border-line">
             <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
               <div>

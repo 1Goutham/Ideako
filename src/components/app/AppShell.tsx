@@ -2,41 +2,48 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/store";
 import { cx, initials } from "@/lib/utils";
-import { IconArchive, IconBookmark, IconPen, IconSliders, IconWave, Logo } from "@/components/ui";
+import { Logo } from "@/components/ui";
 
 const NAV = [
-  { href: "/create", label: "Create", icon: IconPen },
-  { href: "/references", label: "References", icon: IconBookmark },
-  { href: "/voice", label: "Voice", icon: IconWave },
-  { href: "/saved", label: "Saved", icon: IconArchive },
-  { href: "/settings", label: "Settings", icon: IconSliders },
+  { href: "/create", label: "Create", n: "01" },
+  { href: "/references", label: "References", n: "02" },
+  { href: "/voice", label: "Voice", n: "03" },
+  { href: "/saved", label: "Saved", n: "04" },
+  { href: "/settings", label: "Settings", n: "05" },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { ready, profile } = useWorkspace();
+  const [menu, setMenu] = useState(false);
 
-  // Gate the workspace behind onboarding.
   useEffect(() => {
     if (ready && !profile?.onboardingCompletedAt) router.replace("/onboarding");
   }, [ready, profile, router]);
 
+  // Close the overlay on navigation and lock scroll while it is open.
+  useEffect(() => setMenu(false), [pathname]);
+  useEffect(() => {
+    document.body.style.overflow = menu ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menu]);
+
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const first = profile?.name.split(" ")[0] ?? "";
 
   return (
-    <div className="relative min-h-dvh">
-      {/* A whisper of the original Ideako backdrop, kept far in the background. */}
-      <div className="bg-ideako pointer-events-none fixed inset-0 -z-10 opacity-[0.22]" aria-hidden="true" />
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-30 bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 md:px-10">
+          <Logo href="/create" />
 
-      <header className="sticky top-0 z-30 border-b border-line/80 bg-paper/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between gap-6 px-5 md:px-8">
-          <Logo href="/create" tagline />
-
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
             {NAV.map(({ href, label }) => {
               const active = isActive(href);
               return (
@@ -44,58 +51,76 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={href}
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={cx(
-                    "relative flex h-14 items-center px-3 text-[13.5px] font-medium transition-colors",
-                    active ? "text-ink" : "text-ink-3 hover:text-ink",
-                  )}
+                  className={cx("link-underline text-[13.5px] transition-colors", active ? "text-ink after:scale-x-100" : "text-ink-3 hover:text-ink")}
                 >
                   {label}
-                  {active && <span className="absolute inset-x-3 -bottom-px h-px bg-ink" aria-hidden="true" />}
                 </Link>
               );
             })}
           </nav>
 
-          <Link
-            href="/settings"
-            className="flex size-8 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-white"
-            aria-label="Your profile and settings"
-            title={profile?.name}
-          >
-            {ready && profile ? initials(profile.name) : "·"}
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/settings"
+              className="mono hidden size-8 items-center justify-center rounded-full border border-line-2 text-[11px] text-ink hover:border-ink md:flex"
+              aria-label="Your profile and settings"
+              title={profile?.name}
+            >
+              {ready && profile ? initials(profile.name) : "·"}
+            </Link>
+            <button type="button" onClick={() => setMenu(true)} className="link-underline text-[14px] text-ink md:hidden" aria-haspopup="dialog" aria-expanded={menu}>
+              Menu
+            </button>
+          </div>
+        </div>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+          <div className="h-px bg-line" />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1240px] px-5 pb-28 pt-8 md:px-8 md:pb-16 md:pt-12">
+      <main className="mx-auto w-full max-w-[1280px] px-6 pb-24 pt-10 md:px-10 md:pt-14">
         {ready && profile?.onboardingCompletedAt ? children : <ShellSkeleton />}
       </main>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur-xl md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        aria-label="Primary"
-      >
-        <div className="grid h-[60px] grid-cols-5">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cx(
-                  "flex flex-col items-center justify-center gap-1 text-[10.5px] font-medium transition-colors",
-                  active ? "text-ink" : "text-ink-3",
-                )}
-              >
-                <Icon size={20} strokeWidth={active ? 2 : 1.6} />
-                {label}
-              </Link>
-            );
-          })}
+      <footer className="mx-auto flex max-w-[1280px] items-center justify-between border-t border-line px-6 py-6 text-[12px] text-ink-3 md:px-10">
+        <p>© {new Date().getFullYear()} Ideako</p>
+        <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="link-underline hover:text-ink">
+          Back to top ↑
+        </button>
+      </footer>
+
+      {/* Mobile menu: full-screen, type only. */}
+      {menu && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-paper animate-fade md:hidden" role="dialog" aria-label="Menu">
+          <div className="flex h-16 items-center justify-between px-6">
+            <Logo href="/create" />
+            <button type="button" onClick={() => setMenu(false)} className="link-underline text-[14px] text-ink">
+              Close
+            </button>
+          </div>
+          <nav className="flex flex-1 flex-col justify-center px-6" aria-label="Primary">
+            <ul className="flex flex-col">
+              {NAV.map(({ href, label, n }) => {
+                const active = isActive(href);
+                return (
+                  <li key={href} className="border-t border-line last:border-b">
+                    <Link href={href} className="flex items-baseline justify-between py-4" aria-current={active ? "page" : undefined}>
+                      <span className={cx("display text-[40px]", active ? "text-ink" : "text-ink-2")}>{label}</span>
+                      <span className="label">{n}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className="flex items-center justify-between px-6 pb-8 text-[12.5px] text-ink-3">
+            <span>{first ? `Signed in as ${first}` : ""}</span>
+            <Link href="/" className="link-underline hover:text-ink">
+              ideako.app
+            </Link>
+          </div>
         </div>
-      </nav>
+      )}
     </div>
   );
 }
@@ -104,8 +129,8 @@ function ShellSkeleton() {
   return (
     <div className="animate-fade space-y-4" aria-hidden="true">
       <div className="h-3 w-16 rounded animate-shimmer" />
-      <div className="h-7 w-56 rounded animate-shimmer" />
-      <div className="mt-8 h-40 rounded-lg animate-shimmer" />
+      <div className="h-10 w-64 rounded animate-shimmer" />
+      <div className="mt-8 h-40 rounded-md animate-shimmer" />
     </div>
   );
 }

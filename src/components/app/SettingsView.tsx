@@ -6,8 +6,7 @@ import { toast } from "sonner";
 import { CONTACT_URL, CREATING_FOR, INDUSTRIES, PLATFORMS } from "@/lib/constants";
 import { useWorkspace, useWorkspaceActions } from "@/lib/store";
 import type { CreatingFor, Platform } from "@/lib/types";
-import { cx } from "@/lib/utils";
-import { Button, Chip, ChipGroup, Field, Input } from "@/components/ui";
+import { Button, Chip, ChipGroup, Field, Input, TextAction } from "@/components/ui";
 import { PageHeader } from "./PageHeader";
 
 export function SettingsView() {
@@ -76,11 +75,11 @@ export function SettingsView() {
   };
 
   return (
-    <div className="mx-auto max-w-[880px]">
-      <PageHeader eyebrow="Settings" title="Profile & workspace" description="Who Ideako writes as, and where your work lives." />
+    <div>
+      <PageHeader index="05 · Settings" title="Profile & workspace" description="Who Ideako writes as, and where your work lives." />
 
-      <div className="flex flex-col gap-10">
-        <Section title="Creating for">
+      <div className="flex flex-col">
+        <Section index="01" title="Creating for">
           <ChipGroup>
             {CREATING_FOR.map((o) => (
               <Chip key={o.key} selected={creatingFor === o.key} onClick={() => setCreatingFor(o.key)} title={o.hint}>
@@ -90,8 +89,8 @@ export function SettingsView() {
           </ChipGroup>
         </Section>
 
-        <Section title="Profile">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <Section index="02" title="Profile">
+          <div className="grid gap-8 sm:grid-cols-2 sm:gap-x-10">
             <Field label="Your name">{(id) => <Input id={id} value={name} onChange={(e) => setName(e.target.value)} />}</Field>
             <Field label="Email" hint="Used to sign back in on this device.">{(id) => <Input id={id} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
             <Field label={creatingFor === "brand" ? "Brand / team name" : "Company name"} optional={creatingFor === "myself"}>
@@ -114,63 +113,55 @@ export function SettingsView() {
           </div>
         </Section>
 
-        <Section title="Platform" hint="Where your posts are headed. More platforms are on the way.">
+        <Section index="03" title="Platform" hint="Where your posts are headed. More platforms are on the way.">
           <ChipGroup>
             {(Object.keys(PLATFORMS) as Platform[]).map((p) => (
-              <Chip key={p} selected={platform === p} disabled={!PLATFORMS[p].available} onClick={() => setPlatform(p)} title={PLATFORMS[p].available ? undefined : "Coming soon"} className={cx(!PLATFORMS[p].available && "opacity-50")}>
+              <Chip key={p} selected={platform === p} disabled={!PLATFORMS[p].available} onClick={() => setPlatform(p)} title={PLATFORMS[p].available ? undefined : "Coming soon"}>
                 {PLATFORMS[p].label}
-                {!PLATFORMS[p].available && <span className="text-[10.5px] text-ink-4">soon</span>}
+                {!PLATFORMS[p].available && <span className="mono text-[10px] text-ink-4">soon</span>}
               </Chip>
             ))}
           </ChipGroup>
         </Section>
 
-        <div className="flex justify-end border-t border-line pt-6">
+        <div className="flex justify-end py-6">
           <Button variant="primary" onClick={save} disabled={!dirty}>
             Save changes
           </Button>
         </div>
 
-        <Section title="Your data" hint="Ideako keeps your workspace in this browser. Nothing is sent anywhere except the text you generate with, which goes to Gemini through Ideako's server.">
-          <div className="rounded-lg border border-line bg-surface">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+        <Section index="04" title="Your data" hint="Ideako keeps your workspace in this browser. Only the text you generate with goes to Gemini, through Ideako's server.">
+          <ul className="border-t border-line">
+            <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
               <div>
-                <p className="text-[14px] font-medium text-ink">Export workspace</p>
-                <p className="text-[12.5px] text-ink-3">
-                  {posts.length} posts · {references.length} references · {voice?.knowledge.length ?? 0} documents, as JSON.
+                <p className="text-[15px] text-ink">Export workspace</p>
+                <p className="mono mt-1 text-[11px] text-ink-4">
+                  {posts.length} posts · {references.length} references · {voice?.knowledge.length ?? 0} documents · JSON
                 </p>
               </div>
-              <Button size="sm" onClick={exportData}>
-                Download
-              </Button>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3.5 sm:px-5">
+              <TextAction onClick={exportData}>Download</TextAction>
+            </li>
+            <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
               <div>
-                <p className="text-[14px] font-medium text-ink">Clear workspace</p>
-                <p className="text-[12.5px] text-ink-3">Removes your profile, voice, references and posts from this device.</p>
+                <p className="text-[15px] text-ink">Clear workspace</p>
+                <p className="mt-1 text-[12.5px] text-ink-3">Removes your profile, voice, references and posts from this device.</p>
               </div>
               {confirmClear ? (
-                <div className="flex items-center gap-2">
-                  <Button size="sm" onClick={() => setConfirmClear(false)}>
-                    Keep
-                  </Button>
-                  <Button size="sm" variant="danger" onClick={clearAll} className="border border-danger/30">
-                    Yes, clear everything
-                  </Button>
+                <div className="flex items-center gap-4">
+                  <TextAction onClick={() => setConfirmClear(false)}>Keep</TextAction>
+                  <TextAction onClick={clearAll} className="text-danger hover:text-danger">Yes, clear everything</TextAction>
                 </div>
               ) : (
-                <Button size="sm" variant="danger" onClick={() => setConfirmClear(true)}>
-                  Clear…
-                </Button>
+                <TextAction onClick={() => setConfirmClear(true)} className="text-danger hover:text-danger">Clear…</TextAction>
               )}
-            </div>
-          </div>
+            </li>
+          </ul>
         </Section>
 
-        <Section title="About">
-          <p className="text-[13.5px] leading-relaxed text-ink-2">
+        <Section index="05" title="About">
+          <p className="max-w-lg text-[15px] leading-relaxed text-ink-2">
             Ideako is an AI creative partner that learns how you communicate. Questions or ideas?{" "}
-            <a href={CONTACT_URL} target="_blank" rel="noreferrer" className="font-medium text-ink underline-offset-4 hover:underline">
+            <a href={CONTACT_URL} target="_blank" rel="noreferrer" className="link-underline text-ink">
               Get in touch ↗
             </a>
           </p>
@@ -180,14 +171,15 @@ export function SettingsView() {
   );
 }
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+function Section({ index, title, hint, children }: { index: string; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-4 md:grid-cols-[220px_1fr] md:gap-10">
-      <div>
-        <h2 className="text-[15px] font-medium text-ink">{title}</h2>
-        {hint && <p className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{hint}</p>}
+    <section className="grid gap-6 border-t border-line py-10 md:grid-cols-12 md:gap-10">
+      <div className="md:col-span-4">
+        <p className="label">{index}</p>
+        <h2 className="mt-3 text-[20px] text-ink">{title}</h2>
+        {hint && <p className="mt-2 max-w-xs text-[13px] leading-relaxed text-ink-3">{hint}</p>}
       </div>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 md:col-span-8">{children}</div>
     </section>
   );
 }

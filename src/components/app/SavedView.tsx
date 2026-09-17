@@ -8,7 +8,7 @@ import { PLATFORMS } from "@/lib/constants";
 import { useWorkspace, useWorkspaceActions } from "@/lib/store";
 import type { GeneratedPost } from "@/lib/types";
 import { copyToClipboard, cx, excerpt, formatDate, openingLine } from "@/lib/utils";
-import { IconMore, LinkButton } from "@/components/ui";
+import { LinkButton, Segmented, TextAction } from "@/components/ui";
 import { EmptyState } from "./EmptyState";
 import { PageHeader } from "./PageHeader";
 
@@ -30,7 +30,6 @@ export function SavedView() {
 
   const actions = (post: GeneratedPost) => [
     { label: "Open", run: () => open(post) },
-    { label: "Edit", run: () => open(post) },
     {
       label: "Copy",
       run: async () => {
@@ -38,10 +37,7 @@ export function SavedView() {
         else toast.error("Couldn't access the clipboard.");
       },
     },
-    {
-      label: post.status === "saved" ? "Unsave" : "Save",
-      run: () => updatePost(post.id, { status: post.status === "saved" ? "draft" : "saved" }),
-    },
+    { label: post.status === "saved" ? "Unsave" : "Save", run: () => updatePost(post.id, { status: post.status === "saved" ? "draft" : "saved" }) },
     {
       label: "Duplicate",
       run: () => {
@@ -68,39 +64,27 @@ export function SavedView() {
   ];
 
   return (
-    <div className="mx-auto max-w-[880px]">
+    <div>
       <PageHeader
-        eyebrow="Saved"
+        index="04 · Saved"
         title="Recent creations"
         description="Everything Ideako has written with you. Save the ones you like; the rest stays here as history."
         actions={
-          <div className="inline-flex rounded-md border border-line-2 bg-surface-2 p-0.5" role="tablist">
-            {(
-              [
-                { key: "saved", label: `Saved${savedCount ? ` · ${savedCount}` : ""}` },
-                { key: "all", label: `All history${posts.length ? ` · ${posts.length}` : ""}` },
-              ] as { key: Filter; label: string }[]
-            ).map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={filter === t.key}
-                onClick={() => setFilter(t.key)}
-                className={cx(
-                  "h-8 rounded-[5px] px-3 text-[13px] font-medium transition-colors",
-                  filter === t.key ? "bg-surface text-ink shadow-[0_1px_2px_rgb(20_23_26/0.08)]" : "text-ink-3 hover:text-ink",
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <Segmented<Filter>
+            ariaLabel="Filter"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "saved", label: `Saved${savedCount ? ` (${savedCount})` : ""}` },
+              { value: "all", label: `All history${posts.length ? ` (${posts.length})` : ""}` },
+            ]}
+          />
         }
       />
 
       {list.length === 0 ? (
         <EmptyState
-          title={filter === "saved" ? "Nothing saved yet" : "No posts yet"}
+          title={filter === "saved" ? "Nothing saved yet." : "No posts yet."}
           description={
             filter === "saved"
               ? posts.length
@@ -110,9 +94,7 @@ export function SavedView() {
           }
           action={
             posts.length && filter === "saved" ? (
-              <button type="button" onClick={() => setFilter("all")} className="text-sm font-medium text-ink underline-offset-4 hover:underline">
-                See all history
-              </button>
+              <TextAction onClick={() => setFilter("all")}>See all history</TextAction>
             ) : (
               <LinkButton href="/create" variant="primary">
                 Create a post
@@ -121,41 +103,46 @@ export function SavedView() {
           }
         />
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line bg-surface">
-          {list.map((post) => (
-            <li key={post.id} className="group flex items-start gap-4 px-4 py-4 sm:px-5">
-              <button type="button" onClick={() => open(post)} className="min-w-0 flex-1 text-left">
-                <p className="text-[14.5px] font-medium leading-snug text-ink">{openingLine(post.content, 90)}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-ink-3">{excerpt(post.content.split("\n").slice(1).join(" "), 120)}</p>
-                <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-ink-4">
-                  <span>{formatDate(post.updatedAt)}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{PLATFORMS[post.platform].label}</span>
-                  <span aria-hidden="true">·</span>
-                  <span className={post.status === "saved" ? "text-success" : ""}>{post.status === "saved" ? "Saved" : "Draft"}</span>
-                  {post.versions.length > 1 && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>v{post.versions.length}</span>
-                    </>
-                  )}
-                  {post.hashtags.selected.length > 0 && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>{post.hashtags.selected.length} hashtags</span>
-                    </>
-                  )}
-                </p>
-              </button>
-              <RowMenu items={actions(post)} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="flex items-baseline justify-between border-b border-line pb-3">
+            <p className="label">{filter === "saved" ? "Saved" : "All history"} <span className="text-ink-4">({list.length})</span></p>
+            <p className="mono text-[11px] text-ink-4">Updated</p>
+          </div>
+          <ul>
+            {list.map((post) => (
+              <li key={post.id} className="group border-b border-line py-6">
+                <div className="flex items-start justify-between gap-6">
+                  <button type="button" onClick={() => open(post)} className="min-w-0 flex-1 text-left">
+                    <p className="display text-[24px] text-ink md:text-[32px]">{openingLine(post.content, 90)}</p>
+                    <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-ink-3">{excerpt(post.content.split("\n").slice(1).join(" "), 140)}</p>
+                  </button>
+                  <span className="mono shrink-0 text-[12px] text-ink-3">{formatDate(post.updatedAt)}</span>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="mono flex flex-wrap items-center gap-x-3 text-[11px] uppercase tracking-wider text-ink-4">
+                    <span>{PLATFORMS[post.platform].label}</span>
+                    <span className={cx("flex items-center gap-1.5", post.status === "saved" && "text-ink-2")}>
+                      {post.status === "saved" && <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />}
+                      {post.status === "saved" ? "Saved" : "Draft"}
+                    </span>
+                    <span>v{post.versions.length}</span>
+                    {post.hashtags.selected.length > 0 && <span>{post.hashtags.selected.length} hashtags</span>}
+                  </p>
+                  <RowMenu items={actions(post)} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {posts.length > 0 && (
-        <p className="mt-4 text-[12px] text-ink-4">
-          Posts are kept on this device. <Link href="/settings" className="underline-offset-4 hover:text-ink hover:underline">Export or clear</Link> them under Settings.
+        <p className="mt-6 text-[12.5px] text-ink-4">
+          Posts are kept on this device.{" "}
+          <Link href="/settings" className="link-underline text-ink-3 hover:text-ink">
+            Export or clear
+          </Link>{" "}
+          them under Settings.
         </p>
       )}
     </div>
@@ -165,21 +152,25 @@ export function SavedView() {
 function RowMenu({ items }: { items: { label: string; run: () => void; danger?: boolean; disabled?: boolean }[] }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        onBlur={() => setTimeout(() => setOpen(false), 120)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Post actions"
-        className={cx("flex size-8 items-center justify-center rounded-md text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink", open && "bg-surface-2 text-ink")}
-      >
-        <IconMore size={18} />
-      </button>
+    <div className="relative">
+      <div className="hidden items-center gap-3 sm:flex">
+        {items.slice(0, 3).map((it) => (
+          <TextAction key={it.label} onClick={it.run} disabled={it.disabled}>
+            {it.label}
+          </TextAction>
+        ))}
+        <TextAction onClick={() => setOpen((o) => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)} aria-haspopup="menu" aria-expanded={open} active={open}>
+          More
+        </TextAction>
+      </div>
+      <div className="sm:hidden">
+        <TextAction onClick={() => setOpen((o) => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)} aria-haspopup="menu" aria-expanded={open} active={open}>
+          Actions
+        </TextAction>
+      </div>
       {open && (
-        <div role="menu" className="absolute right-0 z-20 mt-1 w-44 rounded-md border border-line bg-surface py-1 shadow-pop animate-fade">
-          {items.map((it) => (
+        <div role="menu" className="absolute right-0 z-20 mt-2 w-48 border border-line-2 bg-paper py-1 animate-fade">
+          {(typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches ? items.slice(3) : items).map((it) => (
             <button
               key={it.label}
               role="menuitem"
@@ -189,10 +180,7 @@ function RowMenu({ items }: { items: { label: string; run: () => void; danger?: 
                 setOpen(false);
                 it.run();
               }}
-              className={cx(
-                "block w-full px-3 py-1.5 text-left text-[13px] transition-colors disabled:opacity-40",
-                it.danger ? "text-danger hover:bg-danger-soft" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
-              )}
+              className={cx("block w-full px-4 py-2 text-left text-[13.5px] transition-colors disabled:opacity-40", it.danger ? "text-danger hover:bg-ink/5" : "text-ink-2 hover:bg-ink/5 hover:text-ink")}
             >
               {it.label}
             </button>

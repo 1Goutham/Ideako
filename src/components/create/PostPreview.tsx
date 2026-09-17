@@ -5,10 +5,7 @@ import { PLATFORMS } from "@/lib/constants";
 import type { Platform } from "@/lib/types";
 import { initials } from "@/lib/utils";
 
-/**
- * A quiet approximation of how the post reads in the feed, including the
- * "…see more" fold. Useful for judging the hook; not a pixel-perfect clone.
- */
+/** A quiet approximation of the feed, including the "…see more" fold. */
 export function PostPreview({
   content,
   platform,
@@ -29,19 +26,17 @@ export function PostPreview({
   const shown = expanded || !needsFold ? full : full.slice(0, fold).trimEnd();
 
   return (
-    <div className="px-5 py-5 sm:px-6">
-      <div className="mx-auto max-w-[560px] rounded-lg border border-line bg-surface px-4 py-4 shadow-[0_1px_2px_rgb(20_23_26/0.04)]">
+    <div className="px-6 py-8">
+      <div className="mx-auto max-w-[540px]">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-full bg-surface-3 text-[12px] font-semibold text-ink-2">
-            {initials(name)}
-          </span>
+          <span className="mono flex size-10 items-center justify-center rounded-full border border-line-2 text-[12px] text-ink">{initials(name)}</span>
           <div className="min-w-0 leading-tight">
-            <p className="truncate text-[14px] font-semibold text-ink">{name}</p>
+            <p className="truncate text-[14px] text-ink">{name}</p>
             <p className="truncate text-[12px] text-ink-3">{subtitle}</p>
-            <p className="text-[11px] text-ink-4">Now</p>
+            <p className="mono text-[10.5px] text-ink-4">Now</p>
           </div>
         </div>
-        <p className="prose-post mt-3 text-[14px] text-ink">
+        <p className="prose-post mt-4 text-[15px] leading-relaxed text-ink">
           {shown}
           {needsFold && !expanded && (
             <>
@@ -53,13 +48,13 @@ export function PostPreview({
           )}
         </p>
         {needsFold && expanded && (
-          <button type="button" onClick={() => setExpanded(false)} className="mt-2 text-[12px] text-ink-3 hover:text-ink">
+          <button type="button" onClick={() => setExpanded(false)} className="link-underline mt-3 text-[12.5px] text-ink-3 hover:text-ink">
             Show less
           </button>
         )}
       </div>
-      <p className="mt-3 text-center text-[11.5px] text-ink-4">
-        {PLATFORMS[platform].label} folds the post after about {fold} characters. What shows above the fold is your hook.
+      <p className="mono mt-8 text-center text-[11px] text-ink-4">
+        {PLATFORMS[platform].label} folds after ~{fold} characters. Above the fold is your hook.
       </p>
     </div>
   );

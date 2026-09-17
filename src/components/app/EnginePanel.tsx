@@ -16,6 +16,7 @@ interface EngineResponse {
   ok: boolean;
   providers: ProviderStatus[];
   active: string[];
+  routing?: { write: string | null; analyse: string | null };
   probe?: { ok: boolean; provider?: string; model?: string; ms: number; error?: string };
 }
 
@@ -50,7 +51,10 @@ export function EnginePanel() {
   }, [load]);
 
   const active = data?.active ?? [];
-  const primary = data?.providers.find((p) => p.id === active[0]);
+  const byId = (id: string | null | undefined) => data?.providers.find((p) => p.id === id);
+  const writer = byId(data?.routing?.write ?? active[0]);
+  const analyser = byId(data?.routing?.analyse ?? active[0]);
+  const split = !!writer && !!analyser && writer.id !== analyser.id;
 
   return (
     <div>
@@ -64,9 +68,16 @@ export function EnginePanel() {
             "No engine connected."
           ) : (
             <>
-              Running on <span className="font-medium">{primary?.label}</span>
-              {primary?.model && <span className="mono ml-2 text-[11.5px] text-ink-3">{primary.model}</span>}
-              {active.length > 1 && <span className="text-ink-3"> · {active.length - 1} fallback{active.length > 2 ? "s" : ""}</span>}
+              Writing on <span className="font-medium">{writer?.label}</span>
+              {writer?.model && <span className="mono ml-2 text-[11.5px] text-ink-3">{writer.model}</span>}
+              {split && (
+                <>
+                  <span className="text-ink-3"> · analysis on </span>
+                  <span className="font-medium">{analyser?.label}</span>
+                  {analyser?.model && <span className="mono ml-2 text-[11.5px] text-ink-3">{analyser.model}</span>}
+                </>
+              )}
+              {!split && active.length > 1 && <span className="text-ink-3"> · {active.length - 1} fallback{active.length > 2 ? "s" : ""}</span>}
             </>
           )}
         </p>
@@ -103,8 +114,11 @@ export function EnginePanel() {
                   <p className="flex items-center gap-2 text-[14px] text-ink">
                     {p.configured && <span className={cx("size-1.5 rounded-full", order === 0 ? "bg-accent" : "bg-ink-4")} aria-hidden="true" />}
                     {p.label}
-                    {order === 0 && <span className="mono text-[10.5px] uppercase tracking-wider text-ink-3">primary</span>}
-                    {order > 0 && <span className="mono text-[10.5px] uppercase tracking-wider text-ink-4">fallback {order}</span>}
+                    {p.configured && (
+                      <span className="mono text-[10.5px] uppercase tracking-wider text-ink-3">
+                        {[p.id === writer?.id && "writing", p.id === analyser?.id && "analysis"].filter(Boolean).join(" · ") || `fallback ${order}`}
+                      </span>
+                    )}
                   </p>
                   {p.note && <p className="mt-0.5 text-[12.5px] text-ink-3">{p.note}</p>}
                 </div>
@@ -125,8 +139,8 @@ export function EnginePanel() {
         })}
       </ul>
       <p className="mt-4 text-[12.5px] leading-relaxed text-ink-4">
-        Keys live in the server environment (Vercel → Settings → Environment Variables). If the primary engine is rate-limited, Ideako
-        moves to the next one automatically.
+        Keys live in the server environment (Vercel → Settings → Environment Variables). With two engines, Ideako writes posts on the
+        strongest one and runs hashtags and insights on the fastest, and each covers for the other when rate-limited.
       </p>
     </div>
   );

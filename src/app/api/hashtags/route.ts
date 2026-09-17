@@ -46,6 +46,7 @@ export async function POST(req: Request) {
           };
           return groups.recommended.length ? groups : null;
         },
+        "analyse",
       ),
   );
 }

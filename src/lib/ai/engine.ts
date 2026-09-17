@@ -1,7 +1,7 @@
 import "server-only";
 import type { AiError, AiResponse } from "./contracts";
 import { activeProviders, allProviders } from "./providers";
-import type { CompletionOptions, ProviderStatus } from "./providers/types";
+import type { CompletionOptions, ProviderId, ProviderStatus } from "./providers/types";
 
 /**
  * Ideako's AI engine.
@@ -14,6 +14,31 @@ import type { CompletionOptions, ProviderStatus } from "./providers/types";
  * Free tiers make this essential: Gemini's free quota being exhausted for a
  * minute should not mean the product stops working.
  */
+
+/**
+ * Task routing. Two free tiers are worth more than one when the work is
+ * split: long-form writing goes to the best writer, quick structured
+ * analysis goes to the fastest engine. Each still falls back to the other.
+ * Override with AI_WRITE_PROVIDER / AI_ANALYSE_PROVIDER (a provider id).
+ */
+export type Task = "write" | "analyse";
+
+function preferredFor(task: Task): ProviderId[] {
+  const env = (task === "write" ? process.env.AI_WRITE_PROVIDER : process.env.AI_ANALYSE_PROVIDER)?.trim().toLowerCase() as ProviderId | undefined;
+  if (env) return [env];
+  return task === "analyse" ? ["groq", "gemini"] : ["gemini", "groq"];
+}
+
+/** Active providers, reordered so the task's preferred engines come first. */
+export function chainFor(task: Task): ReturnType<typeof activeProviders> {
+  const active = activeProviders();
+  const prefer = preferredFor(task);
+  return [...active].sort((a, b) => {
+    const ia = prefer.indexOf(a.id);
+    const ib = prefer.indexOf(b.id);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+}
 
 const FALL_THROUGH: ReadonlySet<AiError["code"]> = new Set(["rate_limited", "timeout", "upstream", "network", "empty", "malformed", "not_configured"]);
 
@@ -36,8 +61,8 @@ export interface EngineResult<T> {
   model?: string;
 }
 
-export async function complete(opts: CompletionOptions): Promise<EngineResult<string>> {
-  const chain = activeProviders();
+export async function complete(opts: CompletionOptions, task: Task = "write"): Promise<EngineResult<string>> {
+  const chain = chainFor(task);
   if (!chain.length) return { result: notConfigured() };
 
   let last: AiResponse<string> | null = null;
@@ -83,10 +108,14 @@ export function parseJson<T>(text: string): T | null {
  * the same provider chain a second time before giving up; small models
  * occasionally wrap JSON in prose.
  */
-export async function completeJson<T>(opts: CompletionOptions, validate: (value: unknown) => T | null): Promise<AiResponse<T>> {
+export async function completeJson<T>(
+  opts: CompletionOptions,
+  validate: (value: unknown) => T | null,
+  task: Task = "write",
+): Promise<AiResponse<T>> {
   let lastError: AiError | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const { result, provider, model } = await complete({ ...opts, json: true });
+    const { result, provider, model } = await complete({ ...opts, json: true }, task);
     if (!result.ok) return result;
     const parsed = parseJson<unknown>(result.data);
     const value = parsed === null ? null : validate(parsed);
@@ -98,7 +127,15 @@ export async function completeJson<T>(opts: CompletionOptions, validate: (value:
 }
 
 /** Status of every known provider, for the Settings page. Never includes keys. */
-export async function engineStatus(): Promise<{ providers: ProviderStatus[]; active: string[] }> {
+export async function engineStatus(): Promise<{
+  providers: ProviderStatus[];
+  active: string[];
+  routing: { write: string | null; analyse: string | null };
+}> {
   const providers = await Promise.all(allProviders().map((p) => p.status()));
-  return { providers, active: activeProviders().map((p) => p.id) };
+  return {
+    providers,
+    active: activeProviders().map((p) => p.id),
+    routing: { write: chainFor("write")[0]?.id ?? null, analyse: chainFor("analyse")[0]?.id ?? null },
+  };
 }

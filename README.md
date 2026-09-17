@@ -48,6 +48,7 @@ Recommended setup: **Gemini + Groq**. Two keys, both free, and the product keeps
 How it behaves:
 
 - **Model resolution.** Each provider asks its API which models the key can use and picks the newest stable general-purpose one. `gemini-2.0-flash` was retired on 1 June 2026; nothing in Ideako needs editing when that happens again. Pin a model with `GEMINI_MODEL` / `GROQ_MODEL` if you want to.
+- **Task routing.** With both keys set, posts, refinements and voice analysis are written on Gemini while hashtags and insights run on Groq, so the two free quotas add up and analysis is near-instant. Override with `AI_WRITE_PROVIDER` / `AI_ANALYSE_PROVIDER`.
 - **Fallback.** On a rate limit, timeout, outage, or empty/unreadable answer, the engine moves to the next configured provider. Hard failures (a blocked prompt, a rejected key) stop and report clearly.
 - **Visibility.** Settings → *AI engine* shows the chain, the resolved models, and a *Test connection* button. `GET /api/engine` returns the same without keys.
 

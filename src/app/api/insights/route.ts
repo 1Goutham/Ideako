@@ -32,6 +32,7 @@ export async function POST(req: Request) {
           if (!tone || !suggestion) return null;
           return { hookStrength: hook, readability, tone, suggestion };
         },
+        "analyse",
       ),
   );
 }

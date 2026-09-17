@@ -2,43 +2,35 @@
 
 /* ------------------------------------------------------------------
    Ideako design tokens
-   Calm, editorial, restrained colour. Ink on paper, one accent drawn
-   from the character's cyan hoodie strings, used sparingly.
+   Flat, editorial, warm off-white paper. Ink on paper. One accent
+   (lime) used only for tiny status marks and text selection.
    ------------------------------------------------------------------ */
 @theme {
-  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-ap), ui-monospace, "SF Mono", Menlo, monospace;
 
-  --color-ink: #14171a;
-  --color-ink-2: #454b53;
-  --color-ink-3: #7c828b;
-  --color-ink-4: #a9aeb6;
+  --color-paper: #efeeea;
+  --color-surface: #f6f5f2;
+  --color-surface-2: #e7e6e1;
 
-  --color-line: #e5e7eb;
-  --color-line-2: #d4d8de;
+  --color-ink: #111111;
+  --color-ink-2: #3f3f3c;
+  --color-ink-3: #78776f;
+  --color-ink-4: #a9a8a0;
 
-  --color-paper: #fafafb;
-  --color-surface: #ffffff;
-  --color-surface-2: #f3f4f6;
-  --color-surface-3: #ebedf0;
+  --color-line: rgb(17 17 17 / 0.12);
+  --color-line-2: rgb(17 17 17 / 0.28);
 
-  --color-accent: #1a9bb0;
-  --color-accent-soft: #e6f4f6;
+  --color-accent: #9dff50;
   --color-danger: #b8433c;
-  --color-danger-soft: #fbeceb;
-  --color-success: #2f8a5b;
-  --color-success-soft: #e8f4ed;
-  --color-warn: #b7791f;
-  --color-warn-soft: #fbf3e4;
+  --color-success: #2f7a4f;
+  --color-warn: #a86f16;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
   --radius-lg: 14px;
-  --radius-xl: 20px;
 
-  --shadow-soft: 0 1px 2px rgb(20 23 26 / 0.04), 0 8px 24px -12px rgb(20 23 26 / 0.12);
-  --shadow-pop: 0 4px 12px -2px rgb(20 23 26 / 0.08), 0 16px 40px -16px rgb(20 23 26 / 0.18);
-
-  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
@@ -46,14 +38,15 @@
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   body {
     background: var(--color-paper);
     color: var(--color-ink);
-    font-feature-settings: "ss01", "cv11";
   }
   ::selection {
-    background: var(--color-accent-soft);
+    background: var(--color-accent);
+    color: var(--color-ink);
   }
   button,
   [role="button"] {
@@ -63,9 +56,8 @@
     cursor: not-allowed;
   }
   :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-    border-radius: 4px;
+    outline: 1.5px solid var(--color-ink);
+    outline-offset: 3px;
   }
   textarea,
   input {
@@ -82,46 +74,113 @@
 }
 
 @layer components {
-  /* The soft blurred backdrop from the original Ideako. */
-  .bg-ideako {
-    background-image: url("/Altered-bg.png");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-  }
-  .glass {
-    background: rgb(255 255 255 / 0.62);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgb(255 255 255 / 0.85);
-    box-shadow: var(--shadow-soft);
-  }
-  .eyebrow {
+  /* Small mono label: "01", "SELECTED WORK", "/22". */
+  .label {
+    font-family: var(--font-mono);
     font-size: 11px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    font-weight: 600;
     color: var(--color-ink-3);
   }
-  .hairline {
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Editorial display type. */
+  .display {
+    font-weight: 300;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+  }
+
+  /* Hairline. */
+  .rule {
     border-color: var(--color-line);
   }
+
+  /* Underline that grows from the left (from the portfolio). */
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s var(--ease-out-expo);
+  }
+  .link-underline:hover::after,
+  .group:hover .link-underline::after {
+    transform: scaleX(1);
+  }
+
+  /* Bracketed action: [ Copy ] — brackets ease outward on hover. */
+  .bracket {
+    font-family: var(--font-mono);
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .bracket-l,
+  .bracket-r {
+    display: inline-block;
+    color: var(--color-ink-4);
+    transition: transform 0.35s var(--ease-out-expo), color 0.2s;
+  }
+  .bracket-l {
+    margin-right: 0.35em;
+  }
+  .bracket-r {
+    margin-left: 0.35em;
+  }
+  .bracket:hover .bracket-l,
+  .bracket:focus-visible .bracket-l {
+    transform: translateX(-2px);
+    color: var(--color-ink);
+  }
+  .bracket:hover .bracket-r,
+  .bracket:focus-visible .bracket-r {
+    transform: translateX(2px);
+    color: var(--color-ink);
+  }
+
+  /* Underline-only text input (from the portfolio's contact form). */
+  .field-line {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line-2);
+    border-radius: 0;
+    padding: 10px 0;
+    transition: border-color 0.2s;
+  }
+  .field-line:hover {
+    border-bottom-color: var(--color-ink-3);
+  }
+  .field-line:focus {
+    outline: none;
+    border-bottom-color: var(--color-ink);
+  }
+
   .prose-post {
     white-space: pre-wrap;
     word-break: break-word;
-    line-height: 1.7;
   }
 }
 
 @layer utilities {
   .animate-rise {
-    animation: rise 0.45s var(--ease-out-soft) both;
+    animation: rise 0.6s var(--ease-out-expo) both;
   }
   .animate-fade {
-    animation: fade 0.3s ease-out both;
+    animation: fade 0.35s ease-out both;
   }
   .animate-shimmer {
-    background: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 45%, var(--color-surface-2) 90%);
+    background: linear-gradient(90deg, rgb(17 17 17 / 0.05) 0%, rgb(17 17 17 / 0.1) 45%, rgb(17 17 17 / 0.05) 90%);
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
   }
@@ -139,7 +198,7 @@
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -166,10 +225,8 @@
   0%,
   100% {
     opacity: 0.25;
-    transform: scale(0.85);
   }
   50% {
     opacity: 1;
-    transform: scale(1);
   }
 }

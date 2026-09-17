@@ -20,18 +20,18 @@ interface BaseProps {
 type ButtonProps = BaseProps & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>;
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[background-color,color,border-color,opacity,transform] duration-150 select-none disabled:opacity-50 active:translate-y-px";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium transition-[background-color,color,border-color,opacity,transform] duration-300 select-none disabled:opacity-40 active:scale-[0.98]";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-white hover:bg-[#2a2f35] disabled:hover:bg-ink",
-  secondary: "bg-surface text-ink border border-line-2 hover:bg-surface-2 hover:border-ink-4",
-  ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",
-  danger: "bg-transparent text-danger hover:bg-danger-soft",
+  primary: "bg-ink text-[#f5f3ef] hover:bg-[#2b2b2a] disabled:hover:bg-ink",
+  secondary: "bg-transparent text-ink border border-line-2 hover:border-ink",
+  ghost: "bg-transparent text-ink-2 hover:text-ink hover:bg-ink/5",
+  danger: "bg-transparent text-danger hover:bg-danger/8",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-[13px]",
-  md: "h-10 px-4 text-sm",
+  sm: "h-8 px-3.5 text-[13px]",
+  md: "h-10 px-5 text-[14px]",
   lg: "h-12 px-6 text-[15px]",
 };
 
@@ -47,23 +47,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       {...rest}
     >
-      {loading && <Spinner className={variant === "primary" ? "text-white" : "text-ink-3"} />}
+      {loading && <Spinner className={variant === "primary" ? "text-[#f5f3ef]" : "text-ink-3"} />}
       {children}
     </button>
   );
 });
 
-type LinkButtonProps = BaseProps & { href: string; prefetch?: boolean };
+type LinkButtonProps = BaseProps & { href: string; prefetch?: boolean; target?: string; rel?: string };
 
-export function LinkButton({ href, variant = "secondary", size = "md", full, className, children, prefetch }: LinkButtonProps) {
+export function LinkButton({ href, variant = "secondary", size = "md", full, className, children, prefetch, target, rel }: LinkButtonProps) {
   return (
-    <Link href={href} prefetch={prefetch} className={cx(base, variants[variant], sizes[size], full && "w-full", className)}>
+    <Link href={href} prefetch={prefetch} target={target} rel={rel} className={cx(base, variants[variant], sizes[size], full && "w-full", className)}>
       {children}
     </Link>
   );
 }
 
-/** A tiny text-only action, used in toolbars where buttons would be too loud. */
+/** A mono, bracketed text action: [ Copy ]. Quiet enough for toolbars. */
 export function TextAction({
   className,
   active,
@@ -73,13 +73,32 @@ export function TextAction({
   return (
     <button
       className={cx(
-        "inline-flex h-7 items-center gap-1.5 rounded-sm px-2 text-[13px] font-medium transition-colors disabled:opacity-40",
-        active ? "text-ink bg-surface-2" : "text-ink-3 hover:text-ink hover:bg-surface-2",
+        "bracket h-7 text-[12.5px] transition-colors disabled:opacity-40",
+        active ? "text-ink" : "text-ink-2 hover:text-ink",
         className,
       )}
       {...rest}
     >
-      {children}
+      <span className="bracket-l" aria-hidden="true">[</span>
+      <span className="inline-flex items-center gap-1.5">{children}</span>
+      <span className="bracket-r" aria-hidden="true">]</span>
     </button>
+  );
+}
+
+/** Same bracket treatment for links. */
+export function BracketLink({ href, children, className, external }: { href: string; children: React.ReactNode; className?: string; external?: boolean }) {
+  const cls = cx("bracket text-[13px] text-ink-2 hover:text-ink", className);
+  const inner = (
+    <>
+      <span className="bracket-l" aria-hidden="true">[</span>
+      {children}
+      <span className="bracket-r" aria-hidden="true">]</span>
+    </>
+  );
+  return external ? (
+    <a href={href} target="_blank" rel="noreferrer" className={cls}>{inner}</a>
+  ) : (
+    <Link href={href} className={cls}>{inner}</Link>
   );
 }

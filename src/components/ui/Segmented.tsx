@@ -8,6 +8,7 @@ interface Option<T extends string> {
   hint?: string;
 }
 
+/** Text options separated by hairlines; the active one is underlined. */
 export function Segmented<T extends string>({
   value,
   onChange,
@@ -22,11 +23,7 @@ export function Segmented<T extends string>({
   ariaLabel?: string;
 }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label={ariaLabel}
-      className={cx("inline-flex rounded-md border border-line-2 bg-surface-2 p-0.5", className)}
-    >
+    <div role="radiogroup" aria-label={ariaLabel} className={cx("inline-flex items-center gap-6", className)}>
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -38,11 +35,18 @@ export function Segmented<T extends string>({
             title={o.hint}
             onClick={() => onChange(o.value)}
             className={cx(
-              "flex h-8 min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[13px] font-medium transition-[background-color,color,box-shadow] duration-150",
-              active ? "bg-surface text-ink shadow-[0_1px_2px_rgb(20_23_26/0.08)]" : "text-ink-3 hover:text-ink",
+              "relative py-1 text-[14px] transition-colors",
+              active ? "text-ink" : "text-ink-3 hover:text-ink",
             )}
           >
             {o.label}
+            <span
+              className={cx(
+                "absolute inset-x-0 -bottom-px h-px bg-ink transition-transform duration-300 origin-left",
+                active ? "scale-x-100" : "scale-x-0",
+              )}
+              aria-hidden="true"
+            />
           </button>
         );
       })}

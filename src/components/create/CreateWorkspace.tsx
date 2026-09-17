@@ -272,7 +272,7 @@ export function CreateWorkspace() {
   if (!profile) return null;
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,11fr)_minmax(0,13fr)] lg:gap-14 xl:gap-20">
+    <div className="grid gap-16 lg:grid-cols-[minmax(0,11fr)_minmax(0,13fr)] lg:gap-16 xl:gap-24">
       <div className="min-w-0">
         <Composer
           value={value}
@@ -287,7 +287,7 @@ export function CreateWorkspace() {
       </div>
 
       <div ref={resultRef} className={cx("min-w-0 scroll-mt-20", !post && "lg:sticky lg:top-24 lg:self-start")}>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-10">
           {generating ? (
             <ResultLoading />
           ) : error ? (

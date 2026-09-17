@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PLATFORMS, REFINE_ACTIONS } from "@/lib/constants";
 import type { GeneratedPost, RefineActionKey } from "@/lib/types";
 import { cx, readingTime, wordCount } from "@/lib/utils";
-import { IconCopy, IconRefresh, IconUndo, Spinner, TextAction, Textarea } from "@/components/ui";
+import { Spinner, TextAction, Textarea } from "@/components/ui";
 import { PostPreview } from "./PostPreview";
 
 interface Props {
@@ -39,7 +39,6 @@ export function PostEditor({
   const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const busy = !!refining || regenerating;
 
-  // Adopt external changes (refine, undo, regenerate, opening another post).
   useEffect(() => {
     setLocal(post.content);
   }, [post.id, post.content]);
@@ -66,22 +65,23 @@ export function PostEditor({
   const chars = local.length;
   const words = useMemo(() => wordCount(local), [local]);
   const canUndo = post.versions.length > 1;
-  const versionLabel = `v${post.versions.length}`;
 
   return (
     <div className="animate-rise">
-      <div className={cx("rounded-lg border border-line bg-surface transition-opacity", busy && "opacity-70")}>
+      <div className={cx("border border-line-2 bg-surface transition-opacity", busy && "opacity-60")}>
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-4 py-2.5 sm:px-5">
-          <div className="flex items-center gap-3 text-[12.5px] text-ink-3">
-            <span className="font-medium text-ink">Generated post</span>
-            <span className="text-ink-4">{versionLabel}</span>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3">
+          <div className="flex items-center gap-4">
+            <span className="text-[13.5px] text-ink">Generated post</span>
+            <span className="mono text-[11.5px] text-ink-4">v{post.versions.length}</span>
             {post.status === "saved" && (
-              <span className="rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">Saved</span>
+              <span className="mono flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-ink-3">
+                <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" /> Saved
+              </span>
             )}
           </div>
-          <div className="flex items-center gap-0.5">
-            <div className="mr-2 inline-flex rounded-sm bg-surface-2 p-0.5" role="tablist" aria-label="View">
+          <div className="flex items-center gap-3">
+            <div className="mr-2 flex items-center gap-3" role="tablist" aria-label="View">
               {(["edit", "preview"] as const).map((m) => (
                 <button
                   key={m}
@@ -91,23 +91,18 @@ export function PostEditor({
                     flush();
                     setMode(m);
                   }}
-                  className={cx(
-                    "h-6 rounded-[3px] px-2.5 text-[12px] font-medium capitalize transition-colors",
-                    mode === m ? "bg-surface text-ink shadow-[0_1px_2px_rgb(20_23_26/0.08)]" : "text-ink-3 hover:text-ink",
-                  )}
+                  className={cx("link-underline text-[12.5px] capitalize transition-colors", mode === m ? "text-ink after:scale-x-100" : "text-ink-3 hover:text-ink")}
                 >
                   {m}
                 </button>
               ))}
             </div>
-            <TextAction onClick={onCopy} title="Copy post">
-              <IconCopy size={14} /> Copy
-            </TextAction>
+            <TextAction onClick={onCopy} title="Copy post">Copy</TextAction>
             <TextAction onClick={onSave} active={post.status === "saved"} title={post.status === "saved" ? "Remove from saved" : "Save post"}>
               {post.status === "saved" ? "Unsave" : "Save"}
             </TextAction>
             <TextAction onClick={onRegenerate} disabled={busy} title="Generate a fresh version from the same brief">
-              {regenerating ? <Spinner className="size-3.5" /> : <IconRefresh size={14} />} Regenerate
+              {regenerating && <Spinner className="size-3" />}Regenerate
             </TextAction>
           </div>
         </div>
@@ -124,20 +119,14 @@ export function PostEditor({
             disabled={busy}
             aria-label="Post content"
             spellCheck
-            className="prose-post px-5 py-5 text-[15px] leading-[1.75] sm:px-6"
+            className="prose-post px-6 py-6 text-[16px] leading-[1.75]"
           />
         ) : (
-          <PostPreview
-            content={local}
-            platform={post.platform}
-            name={previewName}
-            subtitle={previewSubtitle}
-            hashtags={post.hashtags.selected}
-          />
+          <PostPreview content={local} platform={post.platform} name={previewName} subtitle={previewSubtitle} hashtags={post.hashtags.selected} />
         )}
 
         {/* Meta */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-2 text-[11.5px] text-ink-4 sm:px-6">
+        <div className="mono flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-2.5 text-[11px] text-ink-4">
           <span>
             {words} words · {readingTime(local)}
           </span>
@@ -145,46 +134,41 @@ export function PostEditor({
             {chars.toLocaleString()} / {limit.toLocaleString()}
           </span>
         </div>
+      </div>
 
-        {/* Refine */}
-        <div className="border-t border-line px-4 py-3.5 sm:px-5">
-          <div className="mb-2.5 flex items-center justify-between">
-            <p className="eyebrow">Refine</p>
-            {canUndo && (
+      {/* Refine */}
+      <div className="mt-6">
+        <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
+          <p className="label">Refine</p>
+          {canUndo && (
+            <TextAction onClick={onUndo} disabled={busy}>
+              Undo last change
+            </TextAction>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-x-1 gap-y-2">
+          {REFINE_ACTIONS.map((a) => {
+            const active = refining === a.key;
+            return (
               <button
+                key={a.key}
                 type="button"
-                onClick={onUndo}
+                onClick={() => {
+                  flush();
+                  onRefine(a.key);
+                }}
                 disabled={busy}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-ink-3 hover:text-ink disabled:opacity-40"
+                title={a.instruction}
+                className={cx(
+                  "inline-flex h-8 items-center gap-2 rounded-full border px-3.5 text-[13px] transition-colors disabled:opacity-40",
+                  active ? "border-ink bg-ink text-[#f5f3ef]" : "border-line-2 text-ink-2 hover:border-ink hover:text-ink",
+                )}
               >
-                <IconUndo size={13} /> Undo last change
+                {active && <Spinner className="size-3 text-[#f5f3ef]" />}
+                {a.label}
               </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {REFINE_ACTIONS.map((a) => {
-              const active = refining === a.key;
-              return (
-                <button
-                  key={a.key}
-                  type="button"
-                  onClick={() => {
-                    flush();
-                    onRefine(a.key);
-                  }}
-                  disabled={busy}
-                  title={a.instruction}
-                  className={cx(
-                    "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-medium transition-colors disabled:opacity-50",
-                    active ? "border-ink bg-ink text-white" : "border-line-2 bg-surface text-ink-2 hover:border-ink-4 hover:text-ink",
-                  )}
-                >
-                  {active && <Spinner className="size-3 text-white" />}
-                  {a.label}
-                </button>
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>

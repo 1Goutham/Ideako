@@ -1,120 +1,155 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { CONTACT_URL } from "@/lib/constants";
 import { useWorkspace } from "@/lib/store";
-import { IconArrowUpRight, LinkButton, Logo } from "@/components/ui";
+import { cx } from "@/lib/utils";
+import { BracketLink, IconArrowUpRight, LinkButton, Logo, PlusMinus } from "@/components/ui";
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Teach Ideako your voice",
-    body: "Paste past posts, upload company material, and tell it how your content should feel. Ideako learns the way you actually write.",
-  },
-  {
-    n: "02",
-    title: "Create with references",
-    body: "Describe an idea, pick a content type and length, and point Ideako at a post you're proud of. It writes something original in that style.",
-  },
-  {
-    n: "03",
-    title: "Refine, don't rewrite",
-    body: "Sharpen the hook, shorten, add a story, or edit by hand. Add hashtags that fit. Save what you like and come back tomorrow.",
-  },
+const HELP = [
+  { n: "01", title: "Your voice", body: "Paste past posts, upload company material, tell it how your content should feel. Ideako learns the way you actually write." },
+  { n: "02", title: "Create", body: "Describe an idea, pick a content type, tone and length, point it at a post you're proud of. It writes something original in that style." },
+  { n: "03", title: "Refine", body: "Sharpen the hook, shorten, add a story, or edit by hand. Add hashtags that fit. Save what you like and come back tomorrow." },
+];
+
+const PROCESS = [
+  { n: "01.", title: "Tell Ideako who you are", body: "Who you create for, your role, your industry. Two minutes." },
+  { n: "02.", title: "Teach it your voice", body: "Tone chips, previous posts, background documents, and anything else it should know. Ideako reads them and tells you what it learned." },
+  { n: "03.", title: "Create with references", body: "Every post is grounded in your profile and the references you choose. Never copied; written in your style." },
+  { n: "04.", title: "Edit, refine, save", body: "A real editor with version history, eight refinements, hashtag suggestions and a short honest read on each draft." },
 ];
 
 export function Landing() {
   const { ready, profile } = useWorkspace();
   const onboarded = ready && !!profile?.onboardingCompletedAt;
+  const start = onboarded ? "/create" : "/onboarding";
+  const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <div className="bg-ideako relative min-h-dvh">
-      <div className="absolute inset-0 bg-white/40" aria-hidden="true" />
+    <div className="min-h-dvh">
+      <header className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 md:px-10">
+        <Logo />
+        <nav className="hidden items-center gap-8 text-[13.5px] md:flex" aria-label="Landing">
+          <a href="#help" className="link-underline text-ink-3 hover:text-ink">What it does</a>
+          <a href="#process" className="link-underline text-ink-3 hover:text-ink">How it works</a>
+          {!onboarded && <Link href="/signin" className="link-underline text-ink-3 hover:text-ink">Sign in</Link>}
+        </nav>
+        <LinkButton href={start} variant="primary" size="sm">
+          {onboarded ? "Open workspace" : "Get started"} <IconArrowUpRight size={14} />
+        </LinkButton>
+      </header>
 
-      <div className="relative">
-        <header className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-5 md:px-8">
-          <Logo />
-          <div className="flex items-center gap-2">
-            {onboarded ? (
-              <LinkButton href="/create" variant="primary" size="sm">
-                Open workspace
-              </LinkButton>
-            ) : (
-              <>
-                <LinkButton href="/signin" variant="ghost" size="sm">
-                  Sign in
-                </LinkButton>
-                <LinkButton href="/onboarding" variant="primary" size="sm">
-                  Get started
-                </LinkButton>
-              </>
-            )}
-          </div>
-        </header>
-
-        <section className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 pb-16 pt-10 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:pb-24 md:pt-16">
-          <div className="animate-rise max-w-xl">
-            <p className="eyebrow mb-4">Your AI creative partner</p>
-            <h1 className="text-[40px] font-light leading-[1.05] tracking-tight text-ink sm:text-[52px] md:text-[64px]">
-              Content that
+      <main className="mx-auto max-w-[1280px] px-6 md:px-10">
+        {/* Hero */}
+        <section className="grid gap-10 pb-20 pt-16 md:grid-cols-12 md:pb-28 md:pt-28">
+          <div className="md:col-span-9">
+            <h1 className="display animate-rise text-[64px] text-ink sm:text-[88px] md:text-[128px] lg:text-[152px]">
+              Content
               <br />
-              <span className="font-medium">sounds like you.</span>
+              that sounds
+              <br />
+              like you.
             </h1>
-            <p className="mt-6 max-w-md text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
-              Ideako learns how you communicate, your tone, your vocabulary, your stories, and helps you
-              create LinkedIn posts in your own voice. Not a prompt box. A partner that pays attention.
+          </div>
+          <div className="animate-rise flex flex-col justify-end md:col-span-3" style={{ animationDelay: "120ms" }}>
+            <p className="text-[13px] leading-relaxed text-ink-3">
+              An AI creative partner that learns your tone, vocabulary and stories, and writes LinkedIn posts in your own voice.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <LinkButton href={onboarded ? "/create" : "/onboarding"} variant="primary" size="lg">
+          </div>
+
+          <div className="animate-rise mt-4 md:col-span-7" style={{ animationDelay: "200ms" }}>
+            <p className="max-w-xl text-[20px] leading-snug text-ink md:text-[26px]">
+              Not a prompt box. Ideako pays attention to how you communicate, so what it creates reads like you wrote it on a good day.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              <LinkButton href={start} variant="primary" size="lg">
                 {onboarded ? "Continue creating" : "Meet Ideako"} <IconArrowUpRight size={16} />
               </LinkButton>
-              <a href="#how" className="px-2 text-sm font-medium text-ink-2 hover:text-ink">
-                See how it works
-              </a>
+              <BracketLink href="#process">How it works</BracketLink>
             </div>
           </div>
-
-          <div className="relative mx-auto w-full max-w-[420px] md:max-w-[520px]">
-            <Image
-              src="/bot.png"
-              alt="Ideako, a friendly robot in a hoodie and headphones, typing on a laptop"
-              width={1870}
-              height={1882}
-              priority
-              sizes="(min-width: 768px) 520px, 80vw"
-              className="h-auto w-full drop-shadow-[0_30px_50px_rgba(20,23,26,0.18)]"
-            />
+          <div className="animate-rise mt-4 md:col-span-5 md:col-start-10" style={{ animationDelay: "260ms" }}>
+            <p className="label mb-3">Platforms</p>
+            <ul className="space-y-1.5 text-[13px]">
+              <li className="flex items-center gap-2 text-ink"><span className="size-1.5 rounded-full bg-accent" aria-hidden="true" /> LinkedIn</li>
+              <li className="text-ink-4">X, soon</li>
+              <li className="text-ink-4">Instagram, soon</li>
+            </ul>
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-[1240px] px-5 pb-20 md:px-8 md:pb-28">
-          <div className="glass rounded-xl p-6 sm:p-10">
-            <div className="grid gap-8 md:grid-cols-3 md:gap-10">
-              {STEPS.map((s) => (
-                <div key={s.n}>
-                  <p className="text-xs font-semibold tracking-widest text-ink-4">{s.n}</p>
-                  <h2 className="mt-3 text-[17px] font-medium text-ink">{s.title}</h2>
-                  <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{s.body}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-10 flex flex-col gap-3 border-t border-ink/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-ink-2">LinkedIn today. More platforms as Ideako grows.</p>
-              <LinkButton href={onboarded ? "/create" : "/onboarding"} variant="primary">
-                {onboarded ? "Open workspace" : "Set up your voice"}
-              </LinkButton>
-            </div>
+        {/* What it does */}
+        <section id="help" className="scroll-mt-20 border-t border-line py-16 md:py-24">
+          <h2 className="display text-[36px] text-ink md:text-[48px]">Ideako helps you with …</h2>
+          <div className="mt-12 grid gap-10 md:grid-cols-3 md:gap-0">
+            {HELP.map((h) => (
+              <div key={h.n} className="md:border-l md:border-line md:px-8 first:md:pl-0 first:md:border-l-0">
+                <p className="display text-[44px] text-ink/15">{h.n}</p>
+                <h3 className="mt-8 text-[17px] text-ink">{h.title}</h3>
+                <p className="mt-2 max-w-xs text-[13.5px] leading-relaxed text-ink-3">{h.body}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <footer className="mx-auto flex max-w-[1240px] flex-col gap-2 px-5 pb-10 text-xs text-ink-3 sm:flex-row sm:items-center sm:justify-between md:px-8">
-          <p>© {new Date().getFullYear()} Ideako</p>
-          <Link href={CONTACT_URL} target="_blank" rel="noreferrer" className="hover:text-ink">
-            Contact ↗
-          </Link>
-        </footer>
-      </div>
+        {/* Process */}
+        <section id="process" className="scroll-mt-20 grid gap-10 border-t border-line py-16 md:grid-cols-12 md:py-24">
+          <div className="md:col-span-5">
+            <h2 className="display text-[36px] text-ink md:text-[48px]">
+              The way it
+              <br />
+              gets to your voice
+            </h2>
+            <p className="mt-6 max-w-sm text-[13.5px] leading-relaxed text-ink-3">
+              Fast and transparent. From first visit to first post that sounds like you is about five minutes, and everything Ideako learns stays editable.
+            </p>
+          </div>
+          <ul className="md:col-span-6 md:col-start-7">
+            {PROCESS.map((p, i) => {
+              const isOpen = open === i;
+              return (
+                <li key={p.n} className="border-t border-line last:border-b">
+                  <button type="button" onClick={() => setOpen(isOpen ? null : i)} aria-expanded={isOpen} className="group flex w-full items-center justify-between gap-4 py-5 text-left">
+                    <span className="flex items-baseline gap-4">
+                      <span className="mono text-[13px] text-ink-3">{p.n}</span>
+                      <span className="text-[17px] text-ink">{p.title}</span>
+                    </span>
+                    <PlusMinus open={isOpen} />
+                  </button>
+                  <div className={cx("grid transition-[grid-template-rows] duration-300", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+                    <div className="overflow-hidden">
+                      <p className="max-w-md pb-6 pl-10 text-[13.5px] leading-relaxed text-ink-3">{p.body}</p>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Closing CTA */}
+        <section className="grid gap-8 border-t border-line py-20 md:grid-cols-12 md:items-end md:py-28">
+          <h2 className="display text-[40px] text-ink sm:text-[56px] md:col-span-9 md:text-[72px]">
+            Let&apos;s make something
+            <br />
+            in your voice.
+          </h2>
+          <div className="md:col-span-3 md:flex md:justify-end">
+            <LinkButton href={start} variant="primary" size="lg">
+              {onboarded ? "Open workspace" : "Set up your voice"} <IconArrowUpRight size={16} />
+            </LinkButton>
+          </div>
+        </section>
+      </main>
+
+      <footer className="mx-auto flex max-w-[1280px] flex-col gap-3 border-t border-line px-6 py-6 text-[12px] text-ink-3 sm:flex-row sm:items-center sm:justify-between md:px-10">
+        <p>© {new Date().getFullYear()} Ideako. Designed &amp; built by Goutham.</p>
+        <div className="flex items-center gap-6">
+          <a href={CONTACT_URL} target="_blank" rel="noreferrer" className="link-underline hover:text-ink">Contact ↗</a>
+          <a href="#" className="link-underline hover:text-ink">Back to top ↑</a>
+        </div>
+      </footer>
     </div>
   );
 }

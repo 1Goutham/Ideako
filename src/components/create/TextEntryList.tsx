@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import { ACCEPTED_TEXT_FILES, MAX_UPLOAD_BYTES } from "@/lib/constants";
 import { cx, isTextLike, readTextFile, uid } from "@/lib/utils";
-import { Button, IconUpload, IconX, Textarea } from "@/components/ui";
+import { TextAction, Textarea } from "@/components/ui";
 
 export interface TextEntry {
   id: string;
@@ -16,15 +16,12 @@ export interface TextEntry {
 interface Props {
   entries: TextEntry[];
   onChange: (entries: TextEntry[]) => void;
-  /** Label prefix for each entry, e.g. "Reference" → "Reference 01". */
   itemLabel: string;
   placeholder: string;
   addLabel?: string;
   uploadLabel?: string;
   max?: number;
   className?: string;
-  /** Start with one empty entry so the user can paste immediately. */
-  startWithOne?: boolean;
 }
 
 export function newEntry(partial: Partial<TextEntry> = {}): TextEntry {
@@ -43,8 +40,7 @@ export function TextEntryList({
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const update = (id: string, patch: Partial<TextEntry>) =>
-    onChange(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const update = (id: string, patch: Partial<TextEntry>) => onChange(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   const remove = (id: string) => onChange(entries.filter((e) => e.id !== id));
   const add = () => entries.length < max && onChange([...entries, newEntry()]);
 
@@ -80,26 +76,19 @@ export function TextEntryList({
   };
 
   return (
-    <div className={cx("flex flex-col gap-3", className)}>
+    <div className={cx("flex flex-col gap-4", className)}>
       {entries.map((entry, i) => (
-        <div key={entry.id} className="rounded-md border border-line bg-surface animate-fade">
-          <div className="flex items-center justify-between gap-3 border-b border-line px-3.5 py-2">
-            <span className="flex min-w-0 items-center gap-2 text-xs text-ink-3">
-              <span className="font-semibold tracking-wider">
+        <div key={entry.id} className="border-t border-line animate-fade">
+          <div className="flex items-center justify-between gap-3 py-2.5">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="label">
                 {itemLabel} {String(i + 1).padStart(2, "0")}
               </span>
-              {entry.source === "upload" && entry.title && (
-                <span className="truncate rounded-sm bg-surface-2 px-1.5 py-0.5 text-[11px] text-ink-2">{entry.title}</span>
-              )}
+              {entry.source === "upload" && entry.title && <span className="truncate text-[12px] text-ink-3">{entry.title}</span>}
             </span>
-            <button
-              type="button"
-              onClick={() => remove(entry.id)}
-              className="flex size-6 items-center justify-center rounded-sm text-ink-4 hover:bg-surface-2 hover:text-ink"
-              aria-label={`Remove ${itemLabel.toLowerCase()} ${i + 1}`}
-            >
-              <IconX size={14} />
-            </button>
+            <TextAction onClick={() => remove(entry.id)} aria-label={`Remove ${itemLabel.toLowerCase()} ${i + 1}`}>
+              Remove
+            </TextAction>
           </div>
           <Textarea
             bare
@@ -108,27 +97,20 @@ export function TextEntryList({
             value={entry.content}
             onChange={(e) => update(entry.id, { content: e.target.value })}
             placeholder={placeholder}
-            className="px-3.5 py-3 text-[14px] leading-relaxed"
+            className="pb-3 text-[15px] leading-relaxed"
           />
         </div>
       ))}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" onClick={add} disabled={entries.length >= max}>
+      <div className={cx("flex flex-wrap items-center gap-x-5 gap-y-2", entries.length > 0 && "border-t border-line pt-3")}>
+        <TextAction onClick={add} disabled={entries.length >= max}>
           + {entries.length ? addLabel : `Paste ${itemLabel.toLowerCase()}`}
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => fileRef.current?.click()} disabled={entries.length >= max}>
-          <IconUpload size={15} /> {uploadLabel}
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept={ACCEPTED_TEXT_FILES}
-          multiple
-          hidden
-          onChange={(e) => onFiles(e.target.files)}
-        />
-        <span className="text-[11.5px] text-ink-4">.txt or .md</span>
+        </TextAction>
+        <TextAction onClick={() => fileRef.current?.click()} disabled={entries.length >= max}>
+          ↑ {uploadLabel}
+        </TextAction>
+        <input ref={fileRef} type="file" accept={ACCEPTED_TEXT_FILES} multiple hidden onChange={(e) => onFiles(e.target.files)} />
+        <span className="mono text-[11px] text-ink-4">.txt / .md</span>
       </div>
     </div>
   );

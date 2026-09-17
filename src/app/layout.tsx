@@ -1,13 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
+import { Anonymous_Pro, Outfit } from "next/font/google";
 import { Toaster } from "sonner";
 import { WorkspaceProvider } from "@/lib/store";
 import "./globals.css";
 
-const montserrat = Montserrat({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-montserrat",
+  weight: ["300", "400", "500"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+const mono = Anonymous_Pro({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-mono-ap",
   display: "swap",
 });
 
@@ -18,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fafafb",
+  themeColor: "#efeeea",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -26,19 +33,21 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={`${outfit.variable} ${mono.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         <WorkspaceProvider>{children}</WorkspaceProvider>
         <Toaster
           position="bottom-center"
-          mobileOffset={{ bottom: 84 }}
+          mobileOffset={{ bottom: 24 }}
           toastOptions={{
             style: {
-              background: "#14171a",
-              color: "#fff",
+              background: "#111111",
+              color: "#f5f3ef",
               border: "none",
-              fontFamily: "var(--font-montserrat)",
+              borderRadius: 999,
+              fontFamily: "var(--font-outfit)",
               fontSize: 13,
+              padding: "12px 18px",
             },
           }}
         />
